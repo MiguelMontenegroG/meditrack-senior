@@ -1,0 +1,24 @@
+@"
+# Contexto para agentes (no se sube)
+contexto/
+
+# Secretos (el ejemplo sí se sube)
+.env
+.env.*
+!.env.example
+
+# Backend
+target/
+*.class
+application-local.yml
+
+# Frontend
+node_modules/
+dist/
+
+# IDEs y sistema
+.idea/
+.vscode/
+*.iml
+.DS_Store
+"@ | Set-Content -Encoding utf8 .gitignore
