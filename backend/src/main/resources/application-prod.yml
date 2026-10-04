@@ -1,0 +1,20 @@
+# Perfil de produccion (Azure App Service + Azure Database for PostgreSQL).
+# Solo variables de entorno: sin credenciales ni valores por defecto.
+# Si una variable falta, el arranque falla a proposito para no ocultar errores.
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: false
+
+# En produccion no se expone Swagger UI.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
