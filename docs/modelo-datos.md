@@ -100,8 +100,15 @@ Convenciones generales:
 | `creado_en` | TIMESTAMPTZ | NOT NULL, DEFAULT now() |
 | `actualizado_en` | TIMESTAMPTZ | NOT NULL, DEFAULT now() |
 
-- **Índices:** UNIQUE case-insensitive `correo`.
-- **Proceso:** P1 (gestión de usuarios), base de autenticación.
+- **Índices:** índice en `usuario_id, fecha_hora`; índice en `entidad, entidad_id`.
+- **Proceso:** Transversal (cumplimiento Ley 1581).
+- **Implementación (estado actual):** el puerto `AuditoriaPort` y su adaptador
+  `AuditoriaRepositoryAdapter` insertan en esta tabla dentro de una transacción
+  nueva (`REQUIRES_NEW`), de modo que los accesos denegados (por ejemplo, un login
+  fallido) quedan registrados aunque la operación principal aborte. Hoy se
+  auditan: `LOGIN` exitoso y denegado, y `CREATE`/`UPDATE` de usuarios
+  (alta, actualización, activación/desactivación y cambio de contraseña). El campo
+  `detalle` nunca contiene contraseñas ni tokens.
 
 ### 2.3 `paciente` (Proceso 1)
 

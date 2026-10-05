@@ -45,3 +45,7 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+# Bandera usada por SecurityConfig para permitir Swagger sin JWT solo en dev.
+meditrack:
+  swagger-habilitado: false
