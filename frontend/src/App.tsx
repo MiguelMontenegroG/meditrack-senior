@@ -1,24 +1,10 @@
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
-import ClinicalWorkspace from '@/ClinicalWorkspace'
-
-// Estructura de rutas lista para la futura descomposicion por features.
-// Por ahora el workspace clinico completo (login + panel) se monta en la raiz,
-// conservando el diseno y el flujo originales.
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <ClinicalWorkspace />,
-  },
-  {
-    path: '/login',
-    element: <ClinicalWorkspace />,
-  },
-  {
-    path: '*',
-    element: <Navigate to="/" replace />,
-  },
-])
-
+import { RouterProvider } from 'react-router-dom'
+import { ProveedoresApp } from '@/app/providers'
+import { router } from '@/app/router'
 export default function App() {
-  return <RouterProvider router={router} />
+  return (
+    <ProveedoresApp>
+      <RouterProvider router={router} />
+    </ProveedoresApp>
+  )
 }

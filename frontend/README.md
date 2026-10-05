@@ -30,9 +30,9 @@ cp .env.example .env
 
 Variables disponibles:
 
-| Variable         | Descripcion                                              | Valor por defecto             |
-| ---------------- | -------------------------------------------------------- | ----------------------------- |
-| `VITE_API_URL`   | URL base de la API REST del backend (debe terminar en `/api`) | `http://localhost:8080/api`   |
+| Variable       | Descripcion                                                  | Valor por defecto           |
+| -------------- | ------------------------------------------------------------ | --------------------------- |
+| `VITE_API_URL` | URL base de la API REST del backend (debe terminar en `/api`) | `http://localhost:8080/api` |
 
 Nunca hardcodees esta URL en el codigo: usala via `import.meta.env.VITE_API_URL`.
 
@@ -44,16 +44,17 @@ npm run dev
 
 La aplicacion queda disponible en `http://localhost:5173`.
 
-## Como construir para produccion
+## Verificacion
 
 ```bash
+npm run lint
 npm run build
 npm run preview
 ```
 
-El resultado se genera en `dist/`. El archivo `public/staticwebapp.config.json`
-configura el `navigationFallback` a `index.html` para el despliegue en
-Azure Static Web Apps.
+El resultado de la build se genera en `dist/`. El archivo
+`public/staticwebapp.config.json` configura el `navigationFallback` a
+`index.html` para el despliegue en Azure Static Web Apps.
 
 ## Estructura de carpetas
 
@@ -61,20 +62,24 @@ Azure Static Web Apps.
 frontend/
 ├── index.html                 # Punto de entrada HTML
 ├── vite.config.ts             # Configuracion de Vite (alias @ -> src)
+├── eslint.config.js           # Configuracion minima de ESLint (React + TS)
 ├── tsconfig.json              # Referencias a tsconfig.app / tsconfig.node
 ├── .env.example               # Variables de entorno de ejemplo
 ├── public/                    # Recursos estaticos y staticwebapp.config.json
 └── src/
     ├── main.tsx               # Arranque de React y carga de estilos/fuentes
-    ├── App.tsx                # Ruteo (React Router)
-    ├── ClinicalWorkspace.tsx   # Componente principal del workspace clinico
-    ├── components/            # Componentes UI compartidos (shadcn/ui)
-    ├── core/                  # Guards, interceptores, modelos y servicios base
-    ├── environments/          # (reservado)
+    ├── App.tsx                # Proveedores + RouterProvider
+    ├── app/                   # Router (rutas reales) y providers
+    ├── components/
+    │   ├── ui/                # Primitivas genericas (boton, estado, aviso)
+    │   └── layout/            # Barra lateral, encabezado, navegacion inferior, marca
     ├── features/              # Modulos por feature del negocio
-    ├── layouts/               # Layouts de la aplicacion
-    ├── lib/                   # Utilidades (cn, etc.)
-    ├── shared/                # Componentes, pipes y directivas compartidas
+    │   ├── auth/              # Inicio de sesion, AuthContext y contrato de tipos
+    │   ├── dashboard/         # Panel de administrador (KPI, graficos, mocks)
+    │   ├── cuidador/          # Vista del cuidador enfermero
+    │   └── pacientes/ medicacion/ citas/ bitacora/ reportes/ admin/  (por implementar)
+    ├── layouts/               # AuthLayout y MainLayout
+    ├── lib/                   # Utilidades (cn)
     └── styles/                # Hojas de estilo globales (globals.css)
 ```
 
@@ -83,7 +88,6 @@ frontend/
 - Vite + React + TypeScript
 - React Router
 - Tailwind CSS v4 (via `@tailwindcss/vite`)
-- shadcn/ui sobre `@base-ui/react`
 - Recharts (graficos del dashboard)
 - lucide-react (iconografia)
 - Atkinson Hyperlegible (fuente de accesibilidad para baja vision)
