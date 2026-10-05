@@ -1,0 +1,503 @@
+openapi: 3.0.3
+info:
+  title: MediTrack Senior API
+  description: |
+    API REST del backend de MediTrack Senior.
+
+    Autenticacion mediante JWT (Bearer). El token se obtiene en
+    `POST /api/auth/login` y se envia en el encabezado
+    `Authorization: Bearer <token>`.
+
+    Los errores usan un unico formato (ver el esquema `ApiError`).
+  version: v1
+servers:
+  - url: http://localhost:8080
+    description: Entorno local de desarrollo
+tags:
+  - name: Autenticacion
+    description: Inicio de sesion y datos del usuario autenticado
+  - name: Usuarios
+    description: Administracion de usuarios (solo ADMINISTRADOR)
+
+paths:
+  /api/auth/login:
+    post:
+      tags: [Autenticacion]
+      summary: Iniciar sesion y obtener un token JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Autenticacion correcta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Cuerpo de la peticion invalido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Credenciales invalidas o cuenta desactivada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/auth/me:
+    get:
+      tags: [Autenticacion]
+      summary: Datos del usuario autenticado
+      responses:
+        '200':
+          description: Datos del usuario autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsuarioAutenticado'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/auth/contrasena:
+    put:
+      tags: [Autenticacion]
+      summary: Cambiar la contrasena del usuario autenticado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CambiarContrasenaRequest'
+      responses:
+        '204':
+          description: Contrasena actualizada
+        '400':
+          description: Datos invalidos (contrasena nueva demasiado corta)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: La contrasena actual no es correcta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/usuarios:
+    post:
+      tags: [Usuarios]
+      summary: Crear un usuario (solo ADMINISTRADOR)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrearUsuarioRequest'
+      responses:
+        '201':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '400':
+          description: Datos invalidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: El usuario autenticado no es ADMINISTRADOR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Ya existe un usuario con ese correo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    get:
+      tags: [Usuarios]
+      summary: Listar usuarios con filtros por rol y estado (paginado)
+      parameters:
+        - name: rol
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/RolNombre'
+        - name: activo
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: pagina
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: tamano
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Pagina de usuarios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageUsuario'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: El usuario autenticado no es ADMINISTRADOR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/usuarios/{id}:
+    get:
+      tags: [Usuarios]
+      summary: Obtener un usuario por id (solo ADMINISTRADOR)
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+      responses:
+        '200':
+          description: Usuario encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: El usuario autenticado no es ADMINISTRADOR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    put:
+      tags: [Usuarios]
+      summary: Actualizar nombre, telefono y rol de un usuario (solo ADMINISTRADOR)
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActualizarUsuarioRequest'
+      responses:
+        '200':
+          description: Usuario actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '400':
+          description: Datos invalidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: El usuario autenticado no es ADMINISTRADOR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Regla de negocio violada (ultimo administrador activo o quitarse su propio rol)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/usuarios/{id}/estado:
+    patch:
+      tags: [Usuarios]
+      summary: Activar o desactivar un usuario (solo ADMINISTRADOR; nunca borrado fisico)
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CambiarEstadoRequest'
+      responses:
+        '200':
+          description: Estado actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '400':
+          description: Datos invalidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: El usuario autenticado no es ADMINISTRADOR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Regla de negocio violada (desactivarse a si mismo o ultimo administrador activo)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    UsuarioId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+  schemas:
+    RolNombre:
+      type: string
+      enum: [ADMINISTRADOR, CUIDADOR_ENFERMERO, FAMILIAR_AUTORIZADO]
+
+    LoginRequest:
+      type: object
+      required: [correo, contrasena]
+      properties:
+        correo:
+          type: string
+          format: email
+        contrasena:
+          type: string
+          format: password
+
+    UsuarioAutenticado:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        nombreCompleto:
+          type: string
+        correo:
+          type: string
+          format: email
+        rol:
+          $ref: '#/components/schemas/RolNombre'
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        tipo:
+          type: string
+          example: Bearer
+        expiraEnSegundos:
+          type: integer
+          format: int64
+        usuario:
+          $ref: '#/components/schemas/UsuarioAutenticado'
+
+    CambiarContrasenaRequest:
+      type: object
+      required: [contrasenaActual, contrasenaNueva]
+      properties:
+        contrasenaActual:
+          type: string
+          format: password
+        contrasenaNueva:
+          type: string
+          format: password
+          minLength: 8
+
+    CrearUsuarioRequest:
+      type: object
+      required: [correo, nombreCompleto, contrasena, rol]
+      properties:
+        correo:
+          type: string
+          format: email
+        nombreCompleto:
+          type: string
+          maxLength: 150
+        telefono:
+          type: string
+          maxLength: 30
+          nullable: true
+        contrasena:
+          type: string
+          format: password
+          minLength: 8
+        rol:
+          $ref: '#/components/schemas/RolNombre'
+
+    ActualizarUsuarioRequest:
+      type: object
+      required: [nombreCompleto, rol]
+      properties:
+        nombreCompleto:
+          type: string
+          maxLength: 150
+        telefono:
+          type: string
+          maxLength: 30
+          nullable: true
+        rol:
+          $ref: '#/components/schemas/RolNombre'
+
+    CambiarEstadoRequest:
+      type: object
+      required: [activo]
+      properties:
+        activo:
+          type: boolean
+
+    Usuario:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        nombreCompleto:
+          type: string
+        correo:
+          type: string
+          format: email
+        telefono:
+          type: string
+          nullable: true
+        rol:
+          $ref: '#/components/schemas/RolNombre'
+        activo:
+          type: boolean
+        ultimoAccesoEn:
+          type: string
+          format: date-time
+          nullable: true
+        creadoEn:
+          type: string
+          format: date-time
+          nullable: true
+        actualizadoEn:
+          type: string
+          format: date-time
+          nullable: true
+
+    PageUsuario:
+      type: object
+      properties:
+        contenido:
+          type: array
+          items:
+            $ref: '#/components/schemas/Usuario'
+        pagina:
+          type: integer
+        tamano:
+          type: integer
+        total:
+          type: integer
+          format: int64
+        totalPaginas:
+          type: integer
+
+    ApiError:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        codigo:
+          type: string
+          example: VALIDACION
+        mensaje:
+          type: string
+        detalles:
+          type: array
+          nullable: true
+          items:
+            type: string
+
+security:
+  - bearerAuth: []
