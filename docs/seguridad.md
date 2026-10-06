@@ -67,16 +67,20 @@ No se incluyen datos personales (correo, nombre) ni informacion clinica.
 
 | Rol | Descripcion | Acceso |
 | --- | --- | --- |
-| `ADMINISTRADOR` | Acceso completo | Gestion de usuarios y operacion del centro |
-| `CUIDADOR_ENFERmero` | Personal de cuidado | Registra bitacoras, medicacion y tareas del dia |
-| `FAMILIAR_AUTORIZADO` | Familiar | Solo lectura de informacion de sus familiares |
+| `ADMINISTRADOR` | Acceso completo | Gestion de usuarios y pacientes (lectura y escritura) |
+| `CUIDADOR_ENFERMERO` | Personal de cuidado | Lectura de los pacientes con asignacion vigente |
+| `FAMILIAR_AUTORIZADO` | Familiar | Lectura de los pacientes con vinculacion autorizada |
 
-> Nota: el nombre correcto del rol es `CUIDADOR_ENFERMERO` (la tabla anterior
-> muestra el valor exacto del enum).
+> Nota: el nombre exacto del enum es `CUIDADOR_ENFERMERO`.
 
-En esta entrega la administracion de usuarios (`/api/usuarios/**`) esta restringida
-a `ADMINISTRADOR` mediante `@PreAuthorize("hasRole('ADMINISTRADOR')")` a nivel de
-controlador.
+En esta entrega:
+
+- La administracion de usuarios (`/api/usuarios/**`) esta restringida a
+  `ADMINISTRADOR` mediante `@PreAuthorize("hasRole('ADMINISTRADOR')")` a nivel de
+  controlador.
+- El modulo de pacientes (`/api/pacientes/**`, contactos, familiares y cuidadores)
+  aplica el alcance del usuario (ver seccion 13): la lectura se filtra en el
+  backend y la escritura exige `ADMINISTRADOR`.
 
 ## 5. Rutas publicas y protegidas
 
@@ -149,9 +153,14 @@ Eventos auditados actualmente:
 
 - `LOGIN` (exitoso y denegado),
 - `CREATE`/`UPDATE` de usuarios (alta, actualizacion, activacion/desactivacion y
-  cambio de contrasena).
+  cambio de contrasena),
+- `CREATE`/`UPDATE` de pacientes (alta, actualizacion y activacion/desactivacion),
+- `CREATE`/`UPDATE`/`DELETE` de contactos de emergencia, vinculaciones de
+  familiares y asignaciones de cuidadores,
+- `READ` de pacientes y contactos (exitoso y denegado).
 
-El campo `detalle` nunca contiene contrasenas ni tokens.
+El campo `detalle` nunca contiene contrasenas, tokens ni datos personales: solo
+describe la operacion realizada.
 
 ## 11. Swagger
 
@@ -169,3 +178,27 @@ Ver `.env.example`. Las relevantes para seguridad:
 - `CORS_ALLOWED_ORIGINS`,
 - `ADMIN_INITIAL_EMAIL`,
 - `ADMIN_INITIAL_PASSWORD`.
+
+## 13. Alcance sobre los pacientes (modulo paciente)
+
+El acceso a un paciente se decide en el backend (no en el cliente) con la regla
+de alcance `AlcancePaciente`:
+
+- `ADMINISTRADOR`: ve todos los pacientes, activos e inactivos, y es el unico que
+  crea, edita, activa/desactiva y gestiona contactos, familiares y cuidadores.
+- `CUIDADOR_ENFERMERO`: solo lectura de los pacientes con una **asignacion
+  vigente** (`asignacion_cuidador.hasta IS NULL`). Nunca ve inactivos.
+- `FAMILIAR_AUTORIZADO`: solo lectura de los pacientes con una **vinculacion
+  autorizada** (`vinculacion_familiar.autorizado = true`). Nunca ve inactivos.
+
+Reglas aplicadas:
+
+- El filtrado se hace en la consulta (paginacion y conteo coherentes), no
+  ocultando campos despues de traerlos.
+- Un paciente inexistente o fuera del alcance responde **404** (nunca 403) para no
+  revelar su existencia; el intento se audita como `READ` **DENEGADO**.
+- La lista de pacientes no expone la situacion clinica; el detalle si, y solo
+  dentro del alcance.
+- Un usuario autenticado sin un rol conocido no obtiene alcance (no se otorga
+  acceso por defecto).
+- La escritura exige `ADMINISTRADOR` con `@PreAuthorize("hasRole('ADMINISTRADOR')")`.
