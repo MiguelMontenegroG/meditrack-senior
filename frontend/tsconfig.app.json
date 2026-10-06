@@ -22,6 +22,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
+    /* Tipos de pruebas */
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
+
     /* Path alias */
     "baseUrl": ".",
     "paths": {

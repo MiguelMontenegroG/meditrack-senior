@@ -1,11 +1,9 @@
 // Types del contrato REAL de autenticacion (POST /api/auth/login).
-// Se declaran aqui para que el Paso 3 solo reemplace la implementacion
-// simulada sin tocar las pantallas que los consumen.
-
+// Ver docs/api/openapi.yaml para el detalle de cada esquema.
 /** Roles soportados por el backend. El FAMILIAR_AUTORIZADO es de solo lectura. */
 export type RolUsuario = 'ADMINISTRADOR' | 'CUIDADOR_ENFERMERO' | 'FAMILIAR_AUTORIZADO'
 
-/** Usuario tal como lo devuelve el backend dentro de la respuesta de login. */
+/** Usuario tal como lo devuelve el backend (login y GET /api/auth/me). */
 export interface UsuarioAutenticado {
   id: number
   nombreCompleto: string
@@ -31,17 +29,29 @@ export interface RespuestaInicioSesion {
 export interface ErrorApi {
   timestamp: string
   status: number
-  codigo: 'CREDENCIALES_INVALIDAS' | 'NO_AUTENTICADO' | 'ACCESO_DENEGADO' | 'VALIDACION' | 'CUERPO_INVALIDO' | 'CONFLICTO'
+  codigo: string
   mensaje: string
+  detalles?: string[] | null
+}
+
+/** Roles con derecho a navegar a la ruta inicial de cada panel. */
+export const RUTA_INICIAL_ROL: Record<RolUsuario, string> = {
+  ADMINISTRADOR: '/dashboard',
+  CUIDADOR_ENFERMERO: '/cuidador',
+  FAMILIAR_AUTORIZADO: '/familiar',
 }
 
 /**
  * API publica del contexto de autenticacion.
- * En el Paso 2 la implementacion es simulada; en el Paso 3 sera real.
+ * Implementacion real contra el backend (Paso 3).
  */
 export interface ContextoAutenticacion {
   usuario: UsuarioAutenticado | null
   token: string | null
-  iniciarSesion: (credenciales: CredencialesInicioSesion, rolSimulado?: RolUsuario) => Promise<void>
+  /** true mientras se valida una sesion guardada al cargar la app. */
+  cargando: boolean
+  /** Mensaje de error de la ultima operacion de sesion (o null). */
+  errorSesion: string | null
+  iniciarSesion: (credenciales: CredencialesInicioSesion) => Promise<UsuarioAutenticado>
   cerrarSesion: () => void
 }

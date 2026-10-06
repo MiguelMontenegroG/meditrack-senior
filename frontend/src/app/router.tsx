@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { EnConstruccion } from '@/components/ui/EnConstruccion'
-import { InicioSesion } from '@/features/auth/InicioSesion'
+import { RutaLogin } from '@/app/RutaLogin'
 import { RutaProtegida } from '@/features/auth/guards/RutaProtegida'
 import { PanelAdministrador } from '@/features/dashboard/PanelAdministrador'
 import { VistaCuidador } from '@/features/cuidador/VistaCuidador'
@@ -9,13 +9,12 @@ import { MainLayout } from '@/layouts/MainLayout'
 
 // Router real de la aplicacion. Rutas publicas para login, rutas protegidas
 // por rol para panel de administrador, vista de cuidador y la espera del
-// familiar autorizado (EnConstruccion). Las rutas sin pantalla muestran
-// EnConstruccion con el mismo lenguaje visual.
+// familiar autorizado (EnConstruccion).
 
 export const router = createBrowserRouter([
   {
     element: <AuthLayout />,
-    children: [{ path: '/login', element: <InicioSesion /> }],
+    children: [{ path: '/login', element: <RutaLogin /> }],
   },
   {
     element: <RutaProtegida rolesPermitidos={['ADMINISTRADOR']} />,
