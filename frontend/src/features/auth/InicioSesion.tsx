@@ -1,32 +1,54 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
 import { MarcaMediTrack } from '@/components/layout/MarcaMediTrack'
+import { EstadoError } from '@/components/ui/EstadoError'
 import { useAutenticacion } from '@/features/auth/useAutenticacion'
-import type { RolUsuario } from '@/features/auth/types'
+import { ErrorApi } from '@/lib/api-client'
+import type { UsuarioAutenticado } from '@/features/auth/types'
 
-// Rol elegido en la pantalla de inicio de sesion (solo Paso 2, mientras la
-// autenticacion es simulada). Se elimina en el Paso 3 al conectar el backend.
-const ROLES_PRUEBA: { valor: RolUsuario; etiqueta: string }[] = [
-  { valor: 'ADMINISTRADOR', etiqueta: 'Administrador' },
-  { valor: 'CUIDADOR_ENFERMERO', etiqueta: 'Cuidador' },
-  { valor: 'FAMILIAR_AUTORIZADO', etiqueta: 'Familiar' },
-]
+// Pantalla de inicio de sesion real contra POST /api/auth/login.
+// No revela si el correo existe: cualquier fallo muestra un mensaje generico.
 
-/** Pantalla de inicio de sesion. Acepta cualquier credencial de prueba. */
-export function InicioSesion() {
+interface PropsInicioSesion {
+  /** Se invoca tras un login correcto; recibe el usuario para redirigir. */
+  alIngresar: (usuario: UsuarioAutenticado) => void
+}
+
+/** Pantalla de inicio de sesion. */
+export function InicioSesion({ alIngresar }: PropsInicioSesion) {
   const { iniciarSesion } = useAutenticacion()
-  const navegar = useNavigate()
   const [mostrarContrasena, setMostrarContrasena] = useState(false)
-  const [rol, setRol] = useState<RolUsuario>('ADMINISTRADOR')
+  const [enviando, setEnviando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function alEnviar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault()
+    if (enviando) return
     const datos = new FormData(evento.currentTarget)
-    const correo = String(datos.get('correo') ?? '')
+    const correo = String(datos.get('correo') ?? '').trim()
     const contrasena = String(datos.get('contrasena') ?? '')
-    await iniciarSesion({ correo, contrasena }, rol)
-    navegar(rol === 'CUIDADOR_ENFERMERO' ? '/cuidador' : rol === 'ADMINISTRADOR' ? '/dashboard' : '/familiar')
+
+    // Validacion de campos en el cliente antes de llamar al backend.
+    if (!correo || !contrasena) {
+      setError('Ingresa tu correo y tu contrasena.')
+      return
+    }
+
+    setError(null)
+    setEnviando(true)
+    try {
+      const usuario = await iniciarSesion({ correo, contrasena })
+      // El backend ya valido las credenciales: se redirige segun el rol.
+      alIngresar(usuario)
+    } catch (fallo) {
+      if (fallo instanceof ErrorApi) {
+        setError(fallo.mensajeUsuario)
+      } else {
+        setError('Ocurrio un error inesperado. Intentalo de nuevo.')
+      }
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -39,10 +61,17 @@ export function InicioSesion() {
             <h1>Bienvenido de nuevo</h1>
             <p>Ingresa para continuar con el cuidado de nuestros residentes.</p>
           </div>
-          <form onSubmit={alEnviar}>
+          <form onSubmit={alEnviar} noValidate>
             <label>
               Correo electronico
-              <input name="correo" type="email" defaultValue="mariana.lopez@solandes.co" required />
+              <input
+                name="correo"
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                required
+                aria-invalid={error ? true : undefined}
+              />
             </label>
             <label>
               Contrasena
@@ -50,44 +79,33 @@ export function InicioSesion() {
                 <input
                   name="contrasena"
                   type={mostrarContrasena ? 'text' : 'password'}
-                  defaultValue="meditrack2026"
+                  autoComplete="current-password"
                   required
+                  aria-invalid={error ? true : undefined}
                 />
-                <button type="button" onClick={() => setMostrarContrasena(!mostrarContrasena)}>
+                <button
+                  type="button"
+                  onClick={() => setMostrarContrasena(!mostrarContrasena)}
+                  aria-label={mostrarContrasena ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                >
                   {mostrarContrasena ? 'Ocultar' : 'Mostrar'}
                 </button>
               </div>
             </label>
 
-            {/* Selector de rol SOLO para pruebas en el Paso 2. Se elimina en el Paso 3. */}
-            <fieldset className="role-fieldset">
-              <legend>Perfil de prueba</legend>
-              <div className="role-options">
-                {ROLES_PRUEBA.map((opcion) => (
-                  <label key={opcion.valor} className="check-label">
-                    <input
-                      type="radio"
-                      name="rolPrueba"
-                      value={opcion.valor}
-                      checked={rol === opcion.valor}
-                      onChange={() => setRol(opcion.valor)}
-                    />
-                    <span>{opcion.etiqueta}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+            {error && <EstadoError mensaje={error} />}
 
             <div className="form-meta">
               <label className="check-label">
-                <input type="checkbox" defaultChecked /> <span>Recordar este dispositivo</span>
+                <input type="checkbox" /> <span>Recordar este dispositivo</span>
               </label>
               <button type="button" className="text-link">
                 ¿Olvidaste tu contrasena?
               </button>
             </div>
-            <button type="submit" className="btn btn-primary login-button">
-              Ingresar al sistema <ArrowUpRight size={17} />
+            <button type="submit" className="btn btn-primary login-button" disabled={enviando}>
+              {enviando ? 'Ingresando...' : 'Ingresar al sistema'}
+              {!enviando && <ArrowUpRight size={17} />}
             </button>
           </form>
           <p className="privacy-note">
@@ -137,7 +155,7 @@ function AsideInicioSesion() {
           </div>
         </div>
       </div>
-      <span className="aside-footer">Centro de Vida Sol de los Andes · Armenia, Quindio</span>
+      <span className="aside-footer">Centro de Vida Sol de los Andes Â· Armenia, Quindio</span>
     </section>
   )
 }

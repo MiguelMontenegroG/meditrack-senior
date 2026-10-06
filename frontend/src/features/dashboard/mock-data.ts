@@ -1,8 +1,9 @@
 import type { AlertaActiva, IndicadorKpiDatos, PuntoCumplimiento, PuntoMiniGrafico, ResidenteAtencion } from '@/features/dashboard/types'
 
-// Datos simulados del panel de administrador (Paso 2).
-// No hay conexion a la API todavia; en el Paso 3 este archivo se sustituye
-// por la capa de servicios real.
+// DATOS DE EJEMPLO (pendientes de su endpoint).
+// Estas cifras son ilustrativas para maquetar el panel de administrador; NO
+// provienen del backend. Cuando exista su endpoint real, este archivo se
+// reemplaza por una llamada a la capa de servicios.
 
 export const datosCumplimiento: PuntoCumplimiento[] = [
   { dia: 'Lun', citas: 18, bitacoras: 35 },
@@ -27,7 +28,7 @@ export const serieMiniGrafico: PuntoMiniGrafico[] = [
 export const indicadoresKpi: IndicadorKpiDatos[] = [
   { etiqueta: 'Citas cumplidas', valor: '94%', detalle: 'de 86 citas', tendencia: '+6.2%', tono: 'primary' },
   { etiqueta: 'Bitacoras hoy', valor: '90,5%', detalle: '38 de 42 residentes', tendencia: '+3,1%', tono: 'green' },
-  { etiqueta: 'Tiempo de alerta', valor: '8 min', detalle: 'promedio de atencion', tendencia: '−2 min', tono: 'warm' },
+  { etiqueta: 'Tiempo de alerta', valor: '8 min', detalle: 'promedio de atencion', tendencia: 'Ã¢Ë†â€™2 min', tono: 'warm' },
   { etiqueta: 'Reportes generados', valor: '27', detalle: 'en este periodo', tendencia: '+12,5%', tono: 'blue' },
 ]
 

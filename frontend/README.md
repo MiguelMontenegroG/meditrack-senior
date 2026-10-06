@@ -49,8 +49,38 @@ La aplicacion queda disponible en `http://localhost:5173`.
 ```bash
 npm run lint
 npm run build
+npm run test
 npm run preview
 ```
+
+El resultado de la build se genera en `dist/`. El archivo
+`public/staticwebapp.config.json` configura el `navigationFallback` a
+`index.html` para el despliegue en Azure Static Web Apps.
+
+## Pruebas
+
+Las pruebas usan **Vitest** con entorno **jsdom** y **React Testing Library**:
+
+```bash
+npm run test
+```
+
+- `src/lib/api-client.test.ts`: cliente HTTP (exito, Bearer, 401/400, error de
+  red, callback de 401).
+- `src/features/auth/AuthContext.test.tsx`: login correcto/fallido, restauracion
+  de sesion con `/me` y cierre de sesion.
+
+No requieren backend: `fetch` se simula con `vi.stubGlobal`.
+
+## Autenticacion
+
+- El login consume `POST /api/auth/login` y valida la sesion con
+  `GET /api/auth/me`. El token se envia como `Authorization: Bearer`.
+- La sesion se guarda en **`sessionStorage`** (se pierde al cerrar la pestana).
+  No hay refresh tokens: al vencer el JWT se cierra sesion.
+- Los mensajes de error se traducen en `src/lib/mensajes-error.ts`; nunca se
+  muestran mensajes tecnicos del backend.
+- Requiere `VITE_API_URL` configurada (ver la seccion Configuracion).
 
 El resultado de la build se genera en `dist/`. El archivo
 `public/staticwebapp.config.json` configura el `navigationFallback` a
