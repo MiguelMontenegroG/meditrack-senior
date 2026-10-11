@@ -19,7 +19,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -28,6 +27,9 @@ import static org.mockito.Mockito.when;
 /**
  * Pruebas del alcance de lectura: fuera de alcance se responde 404 y se audita
  * DENEGADO; dentro del alcance, 200 y auditoria EXITOSO.
+ *
+ * <p>El alcance se resuelve con metodos de repositorio separados por rol, por
+ * lo que las pruebas verifican el metodo concreto invocado.</p>
  */
 class AlcancePacienteTest {
 
@@ -48,7 +50,7 @@ class AlcancePacienteTest {
     @Test
     void leerPacienteFueraDeAlcanceLanza404YAuditaDenegado() {
         when(pacientes.buscarPorId(10L)).thenReturn(Optional.of(paciente()));
-        when(pacientes.esVisiblePara(eq(10L), any(), anyLong())).thenReturn(false);
+        when(pacientes.esVisibleParaFamiliar(10L, 7L)).thenReturn(false);
         ObtenerPacienteUseCase caso = new ObtenerPacienteUseCase(pacientes, auditoria);
 
         assertThatThrownBy(() -> caso.ejecutar(10L, AlcancePaciente.de(7L, RolUsuario.FAMILIAR_AUTORIZADO)))
@@ -72,7 +74,7 @@ class AlcancePacienteTest {
     @Test
     void leerPacienteEnAlcanceDevuelveElPaciente() {
         when(pacientes.buscarPorId(10L)).thenReturn(Optional.of(paciente()));
-        when(pacientes.esVisiblePara(eq(10L), any(), anyLong())).thenReturn(true);
+        when(pacientes.esVisibleParaCuidador(10L, 7L)).thenReturn(true);
         ObtenerPacienteUseCase caso = new ObtenerPacienteUseCase(pacientes, auditoria);
 
         Paciente obtenido = caso.ejecutar(10L, AlcancePaciente.de(7L, RolUsuario.CUIDADOR_ENFERMERO));
@@ -85,6 +87,14 @@ class AlcancePacienteTest {
         ListarPacientesUseCase caso = new ListarPacientesUseCase(pacientes);
         caso.ejecutar(null, null, AlcancePaciente.de(7L, RolUsuario.CUIDADOR_ENFERMERO), 0, 20);
 
-        verify(pacientes).listar(eq(null), eq(Boolean.TRUE), eq(RolUsuario.CUIDADOR_ENFERMERO), eq(7L), eq(0), eq(20));
+        verify(pacientes).listarPorCuidador(eq(null), eq(Boolean.TRUE), eq(7L), eq(0), eq(20));
+    }
+
+    @Test
+    void administradorListaTodosLosEstados() {
+        ListarPacientesUseCase caso = new ListarPacientesUseCase(pacientes);
+        caso.ejecutar(null, null, AlcancePaciente.de(1L, RolUsuario.ADMINISTRADOR), 0, 20);
+
+        verify(pacientes).listarTodos(eq(null), eq(null), eq(0), eq(20));
     }
 }

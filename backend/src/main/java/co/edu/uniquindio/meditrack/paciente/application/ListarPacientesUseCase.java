@@ -11,8 +11,9 @@ import java.util.List;
  * usuario.
  *
  * <p>Solo el administrador puede ver pacientes inactivos; cualquier otro rol ve
- * siempre {@code activo = true} dentro de su alcance. El listado nunca devuelve
- * pacientes fuera del alcance del usuario.</p>
+ * siempre {@code activo = true} dentro de su alcance. El caso de uso elige el
+ * metodo de repositorio segun el alcance, de modo que la restriccion de
+ * visibilidad vive en la consulta y no se pasa el rol como parametro.</p>
  */
 public class ListarPacientesUseCase {
 
@@ -24,11 +25,19 @@ public class ListarPacientesUseCase {
 
     public List<Paciente> ejecutar(String texto, Boolean activo, AlcancePaciente alcance, int pagina, int tamano) {
         Boolean filtroActivo = alcance.puedeVerInactivos() ? activo : Boolean.TRUE;
-        return pacientes.listar(texto, filtroActivo, alcance.rol(), alcance.usuarioId(), pagina, tamano);
+        return switch (alcance.rol()) {
+            case ADMINISTRADOR -> pacientes.listarTodos(texto, filtroActivo, pagina, tamano);
+            case CUIDADOR_ENFERMERO -> pacientes.listarPorCuidador(texto, filtroActivo, alcance.usuarioId(), pagina, tamano);
+            case FAMILIAR_AUTORIZADO -> pacientes.listarPorFamiliar(texto, filtroActivo, alcance.usuarioId(), pagina, tamano);
+        };
     }
 
     public long contar(String texto, Boolean activo, AlcancePaciente alcance) {
         Boolean filtroActivo = alcance.puedeVerInactivos() ? activo : Boolean.TRUE;
-        return pacientes.contar(texto, filtroActivo, alcance.rol(), alcance.usuarioId());
+        return switch (alcance.rol()) {
+            case ADMINISTRADOR -> pacientes.contarTodos(texto, filtroActivo);
+            case CUIDADOR_ENFERMERO -> pacientes.contarPorCuidador(texto, filtroActivo, alcance.usuarioId());
+            case FAMILIAR_AUTORIZADO -> pacientes.contarPorFamiliar(texto, filtroActivo, alcance.usuarioId());
+        };
     }
 }

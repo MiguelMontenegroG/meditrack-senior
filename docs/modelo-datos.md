@@ -1,8 +1,6 @@
 # Modelo de datos - MediTrack Senior
 
-Diseño del esquema relacional para PostgreSQL. Fuente del dominio:
-`contexto/01-proyecto.md` (el PDF `docs/definicion-proyecto.pdf` sigue **vacío,
-0 bytes**, verificado al retomar esta fase). Este documento es la FASE 1
+Diseño del esquema relacional para PostgreSQL. Este documento es la FASE 1
 (diseño); las migraciones Flyway son la FASE 2.
 
 ## Notas de alcance
