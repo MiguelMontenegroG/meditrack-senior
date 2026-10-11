@@ -151,6 +151,8 @@ export const apiClient = {
     peticion<T>(ruta, { ...opciones, method: 'POST', body }),
   put: <T>(ruta: string, body?: unknown, opciones?: OpcionesPeticion) =>
     peticion<T>(ruta, { ...opciones, method: 'PUT', body }),
+  patch: <T>(ruta: string, body?: unknown, opciones?: OpcionesPeticion) =>
+    peticion<T>(ruta, { ...opciones, method: 'PATCH', body }),
   delete: <T>(ruta: string, opciones?: OpcionesPeticion) =>
     peticion<T>(ruta, { ...opciones, method: 'DELETE' }),
 }

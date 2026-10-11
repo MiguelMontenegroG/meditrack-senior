@@ -155,7 +155,7 @@ function AsideInicioSesion() {
           </div>
         </div>
       </div>
-      <span className="aside-footer">Centro de Vida Sol de los Andes Â· Armenia, Quindio</span>
+      <span className="aside-footer">Centro de Vida Sol de los Andes &middot; Armenia, Quindío</span>
     </section>
   )
 }

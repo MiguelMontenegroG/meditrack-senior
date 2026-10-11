@@ -4,17 +4,45 @@ import { RutaLogin } from '@/app/RutaLogin'
 import { RutaProtegida } from '@/features/auth/guards/RutaProtegida'
 import { PanelAdministrador } from '@/features/dashboard/PanelAdministrador'
 import { VistaCuidador } from '@/features/cuidador/VistaCuidador'
+import { ListadoResidentes } from '@/features/pacientes/ListadoResidentes'
+import { DetalleResidente } from '@/features/pacientes/DetalleResidente'
+import { FormularioResidente } from '@/features/pacientes/FormularioResidente'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { MainLayout } from '@/layouts/MainLayout'
 
-// Router real de la aplicacion. Rutas publicas para login, rutas protegidas
-// por rol para panel de administrador, vista de cuidador y la espera del
-// familiar autorizado (EnConstruccion).
-
+// Router real de la aplicacion. Rutas publicas para login; rutas protegidas
+// por rol. Los residentes son transversales: la escritura (nuevo/editar) queda
+// en un bloque solo para ADMINISTRADOR y la lectura segun alcance en otro.
 export const router = createBrowserRouter([
   {
     element: <AuthLayout />,
     children: [{ path: '/login', element: <RutaLogin /> }],
+  },
+  // Rutas de escritura de residentes: solo ADMINISTRADOR.
+  {
+    element: <RutaProtegida rolesPermitidos={['ADMINISTRADOR']} />,
+    children: [
+      {
+        element: <MainLayout titulo="Residentes" />,
+        children: [
+          { path: '/residentes/nuevo', element: <FormularioResidente /> },
+          { path: '/residentes/:id/editar', element: <FormularioResidente /> },
+        ],
+      },
+    ],
+  },
+  // Rutas de lectura de residentes: cualquier rol autenticado (alcance del backend).
+  {
+    element: <RutaProtegida />,
+    children: [
+      {
+        element: <MainLayout titulo="Residentes" />,
+        children: [
+          { path: '/residentes', element: <ListadoResidentes /> },
+          { path: '/residentes/:id', element: <DetalleResidente /> },
+        ],
+      },
+    ],
   },
   {
     element: <RutaProtegida rolesPermitidos={['ADMINISTRADOR']} />,
@@ -23,7 +51,6 @@ export const router = createBrowserRouter([
         element: <MainLayout titulo="Panel" />,
         children: [
           { path: '/dashboard', element: <PanelAdministrador /> },
-          { path: '/residentes', element: <EnConstruccion titulo="Residentes" /> },
           { path: '/calendario', element: <EnConstruccion titulo="Calendario" /> },
           { path: '/bitacora', element: <EnConstruccion titulo="Bitacora" /> },
           { path: '/alertas', element: <EnConstruccion titulo="Alertas" /> },
@@ -43,13 +70,8 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    element: <RutaProtegida rolesPermitidos={['FAMILIAR_AUTORIZADO']} />,
-    children: [
-      {
-        element: <MainLayout titulo="Seguimiento" />,
-        children: [{ path: '/familiar', element: <EnConstruccion titulo="Seguimiento del residente" /> }],
-      },
-    ],
+    path: '/familiar',
+    element: <Navigate to="/residentes" replace />,
   },
   { path: '/', element: <Navigate to="/login" replace /> },
   { path: '*', element: <Navigate to="/login" replace /> },

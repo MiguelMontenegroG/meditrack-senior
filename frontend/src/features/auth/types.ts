@@ -38,7 +38,7 @@ export interface ErrorApi {
 export const RUTA_INICIAL_ROL: Record<RolUsuario, string> = {
   ADMINISTRADOR: '/dashboard',
   CUIDADOR_ENFERMERO: '/cuidador',
-  FAMILIAR_AUTORIZADO: '/familiar',
+  FAMILIAR_AUTORIZADO: '/residentes',
 }
 
 /**

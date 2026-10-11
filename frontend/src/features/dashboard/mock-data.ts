@@ -28,7 +28,7 @@ export const serieMiniGrafico: PuntoMiniGrafico[] = [
 export const indicadoresKpi: IndicadorKpiDatos[] = [
   { etiqueta: 'Citas cumplidas', valor: '94%', detalle: 'de 86 citas', tendencia: '+6.2%', tono: 'primary' },
   { etiqueta: 'Bitacoras hoy', valor: '90,5%', detalle: '38 de 42 residentes', tendencia: '+3,1%', tono: 'green' },
-  { etiqueta: 'Tiempo de alerta', valor: '8 min', detalle: 'promedio de atencion', tendencia: 'Ã¢Ë†â€™2 min', tono: 'warm' },
+  { etiqueta: 'Tiempo de alerta', valor: '8 min', detalle: 'promedio de atención', tendencia: '−2 min', tono: 'warm' },
   { etiqueta: 'Reportes generados', valor: '27', detalle: 'en este periodo', tendencia: '+12,5%', tono: 'blue' },
 ]
 
