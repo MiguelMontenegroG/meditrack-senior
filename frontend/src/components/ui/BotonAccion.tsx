@@ -11,6 +11,8 @@ interface PropsBotonAccion {
   className?: string
   onClick?: () => void
   type?: 'button' | 'submit'
+  /** Deshabilita el boton (p. ej. durante el envio, para evitar doble envio). */
+  disabled?: boolean
 }
 
 /** Boton reutilizable con las variantes del sistema de diseno. */
@@ -20,9 +22,15 @@ export function BotonAccion({
   className = '',
   onClick,
   type = 'button',
+  disabled = false,
 }: PropsBotonAccion) {
   return (
-    <button type={type} onClick={onClick} className={`btn btn-${variant} ${className}`}>
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`btn btn-${variant} ${className}`}
+    >
       {children}
     </button>
   )

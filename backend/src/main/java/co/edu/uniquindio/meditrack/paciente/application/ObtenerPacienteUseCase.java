@@ -27,7 +27,7 @@ public class ObtenerPacienteUseCase {
 
     public Paciente ejecutar(Long pacienteId, AlcancePaciente alcance) {
         boolean existe = pacientes.buscarPorId(pacienteId).isPresent();
-        boolean visible = existe && pacientes.esVisiblePara(pacienteId, alcance.rol(), alcance.usuarioId());
+        boolean visible = existe && esVisiblePara(pacienteId, alcance);
 
         if (!visible) {
             auditoria.registrar(
@@ -52,5 +52,18 @@ public class ObtenerPacienteUseCase {
                 "Lectura de paciente");
 
         return paciente;
+    }
+
+    /**
+     * Decide la visibilidad del paciente segun el alcance del usuario, usando el
+     * metodo de repositorio correspondiente al rol (nunca pasando el rol como
+     * parametro a la consulta).
+     */
+    private boolean esVisiblePara(Long pacienteId, AlcancePaciente alcance) {
+        return switch (alcance.rol()) {
+            case ADMINISTRADOR -> pacientes.esVisibleParaAdmin(pacienteId);
+            case CUIDADOR_ENFERMERO -> pacientes.esVisibleParaCuidador(pacienteId, alcance.usuarioId());
+            case FAMILIAR_AUTORIZADO -> pacientes.esVisibleParaFamiliar(pacienteId, alcance.usuarioId());
+        };
     }
 }

@@ -39,3 +39,43 @@ export function mensajeDeError(codigo: string | undefined): string {
   }
   return MENSAJES.ERROR_INESPERADO
 }
+
+/** Contextos de negocio que afinan el mensaje generico de un codigo. */
+export type ContextoError = 'documento-duplicado'
+
+const MENSAJES_CONTEXTO: Record<ContextoError, Partial<Record<CodigoError, string>>> = {
+  // El backend responde 409 CONFLICTO cuando el documento ya existe.
+  'documento-duplicado': {
+    CONFLICTO: 'Ya existe un residente con ese documento.',
+  },
+}
+
+/**
+ * Mensaje contextual para un codigo dado. Si no hay contexto especifico,
+ * cae en el mensaje general del codigo (nunca en detalles tecnicos).
+ */
+export function mensajeDeErrorContexto(
+  codigo: string | undefined,
+  contexto: ContextoError,
+): string {
+  if (codigo && codigo in MENSAJES_CONTEXTO[contexto]) {
+    return MENSAJES_CONTEXTO[contexto][codigo as CodigoError] as string
+  }
+  return mensajeDeError(codigo)
+}
+
+
+/** Codigos de la API que puede traducir el helper de fallos. */
+export interface FalloConCodigo {
+  codigo: string
+  mensajeUsuario: string
+  status: number
+}
+
+/** Estrangula cualquier valor atrapado en un catch a un mensaje en espanol. */
+export function mensajeDeFallo(fallo: unknown): string {
+  if (fallo && typeof fallo === 'object' && 'mensajeUsuario' in fallo) {
+    return (fallo as FalloConCodigo).mensajeUsuario
+  }
+  return MENSAJES.ERROR_INESPERADO
+}

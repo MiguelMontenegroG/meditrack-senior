@@ -69,9 +69,36 @@ npm run test
   red, callback de 401).
 - `src/features/auth/AuthContext.test.tsx`: login correcto/fallido, restauracion
   de sesion con `/me` y cierre de sesion.
+- `src/features/pacientes/services/pacienteService.test.ts`: query string del
+  listado, detalle, alta, edicion y cambio de estado.
+- `src/features/pacientes/ListadoResidentes.test.tsx`: carga, vacio, error con
+  reintento y visibilidad de acciones segun permisos.
+- `src/features/pacientes/DetalleResidente.test.tsx`: 404 "no encontrado",
+  datos cargados y secciones segun el rol.
 
 No requieren backend: `fetch` se simula con `vi.stubGlobal`.
 
+
+Es decir, las tres líneas nuevas van entre `...cierre de sesion.` y la línea en blanco que hay antes de `No requieren backend`.
+
+Y en `## Estructura de carpetas`, dentro del bloque de `features/`, reemplaza:
+
+```
+    │   ├── auth/              # Inicio de sesion, AuthContext y contrato de tipos
+    │   ├── dashboard/         # Panel de administrador (KPI, graficos, mocks)
+    │   ├── cuidador/          # Vista del cuidador enfermero
+    │   └── pacientes/ medicacion/ citas/ bitacora/ reportes/ admin/  (por implementar)
+```
+
+por:
+
+```
+    │   ├── auth/              # Inicio de sesion, AuthContext y contrato de tipos
+    │   ├── dashboard/         # Panel de administrador (KPI, graficos, mocks)
+    │   ├── cuidador/          # Vista del cuidador enfermero
+    │   ├── pacientes/         # Listado, detalle, formularios y gestion (residentes)
+    │   └── medicacion/ citas/ bitacora/ reportes/ admin/  (por implementar)
+```
 ## Autenticacion
 
 - El login consume `POST /api/auth/login` y valida la sesion con
@@ -82,9 +109,18 @@ No requieren backend: `fetch` se simula con `vi.stubGlobal`.
   muestran mensajes tecnicos del backend.
 - Requiere `VITE_API_URL` configurada (ver la seccion Configuracion).
 
-El resultado de la build se genera en `dist/`. El archivo
-`public/staticwebapp.config.json` configura el `navigationFallback` a
-`index.html` para el despliegue en Azure Static Web Apps.
+## Modulo de residentes
+
+- **Listado** (`/residentes`): todos los roles autenticados. Busqueda por texto
+  y paginacion; el filtro activo/inactivo y el boton "Nuevo residente" solo se
+  muestran al ADMINISTRADOR.
+- **Detalle** (`/residentes/:id`): datos, contactos de emergencia y (solo
+  ADMINISTRADOR) gestion de familiares vinculados y cuidadores asignados.
+- **Alta/edicion** (`/residentes/nuevo`, `/residentes/:id/editar`): solo
+  ADMINISTRADOR.
+- El backend aplica la seguridad real: fuera de alcance responde `404`
+  (mostrado como "Residente no encontrado") y la escritura sin permiso `403`.
+  La interfaz solo decide que controles mostrar.
 
 ## Estructura de carpetas
 

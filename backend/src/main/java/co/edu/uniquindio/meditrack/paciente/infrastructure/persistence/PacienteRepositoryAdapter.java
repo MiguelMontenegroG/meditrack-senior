@@ -2,7 +2,6 @@ package co.edu.uniquindio.meditrack.paciente.infrastructure.persistence;
 
 import co.edu.uniquindio.meditrack.paciente.application.port.PacienteRepositoryPort;
 import co.edu.uniquindio.meditrack.paciente.domain.Paciente;
-import co.edu.uniquindio.meditrack.paciente.domain.RolUsuario;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -62,21 +61,55 @@ public class PacienteRepositoryAdapter implements PacienteRepositoryPort {
     }
 
     @Override
-    public List<Paciente> listar(String texto, Boolean activo, RolUsuario rol, Long usuarioId, int pagina, int tamano) {
-        Pageable pageable = PageRequest.of(pagina, tamano, Sort.by(Sort.Direction.DESC, "id"));
-        return repositorio.listar(textoVacioANulo(texto), activo, rol, usuarioId, pageable).getContent().stream()
-                .map(this::aDominio)
-                .toList();
+    public List<Paciente> listarTodos(String texto, Boolean activo, int pagina, int tamano) {
+        return map(repositorio.listarTodos(textoVacioANulo(texto), activo, pageable(pagina, tamano)).getContent());
     }
 
     @Override
-    public long contar(String texto, Boolean activo, RolUsuario rol, Long usuarioId) {
-        return repositorio.contar(textoVacioANulo(texto), activo, rol, usuarioId);
+    public long contarTodos(String texto, Boolean activo) {
+        return repositorio.contarTodos(textoVacioANulo(texto), activo);
     }
 
     @Override
-    public boolean esVisiblePara(Long pacienteId, RolUsuario rol, Long usuarioId) {
-        return repositorio.esVisiblePara(pacienteId, rol, usuarioId);
+    public List<Paciente> listarPorCuidador(String texto, Boolean activo, Long cuidadorId, int pagina, int tamano) {
+        return map(repositorio.listarPorCuidador(textoVacioANulo(texto), activo, cuidadorId, pageable(pagina, tamano)).getContent());
+    }
+
+    @Override
+    public long contarPorCuidador(String texto, Boolean activo, Long cuidadorId) {
+        return repositorio.contarPorCuidador(textoVacioANulo(texto), activo, cuidadorId);
+    }
+
+    @Override
+    public List<Paciente> listarPorFamiliar(String texto, Boolean activo, Long familiarId, int pagina, int tamano) {
+        return map(repositorio.listarPorFamiliar(textoVacioANulo(texto), activo, familiarId, pageable(pagina, tamano)).getContent());
+    }
+
+    @Override
+    public long contarPorFamiliar(String texto, Boolean activo, Long familiarId) {
+        return repositorio.contarPorFamiliar(textoVacioANulo(texto), activo, familiarId);
+    }
+
+    @Override
+    public boolean esVisibleParaAdmin(Long pacienteId) {
+        return repositorio.existsById(pacienteId);
+    }
+
+    @Override
+    public boolean esVisibleParaCuidador(Long pacienteId, Long cuidadorId) {
+        return repositorio.esVisibleParaCuidador(pacienteId, cuidadorId);
+    }
+
+    @Override
+    public boolean esVisibleParaFamiliar(Long pacienteId, Long familiarId) {
+        return repositorio.esVisibleParaFamiliar(pacienteId, familiarId);
+    }
+
+    private Pageable pageable(int pagina, int tamano) {
+        return PageRequest.of(pagina, tamano, Sort.by(Sort.Direction.DESC, "id"));
+    }
+    private List<Paciente> map(List<PacienteEntity> entidades) {
+        return entidades.stream().map(this::aDominio).toList();
     }
 
     private String textoVacioANulo(String texto) {
