@@ -41,12 +41,22 @@ export function mensajeDeError(codigo: string | undefined): string {
 }
 
 /** Contextos de negocio que afinan el mensaje generico de un codigo. */
-export type ContextoError = 'documento-duplicado'
+export type ContextoError = 'documento-duplicado' | 'correo-duplicado' | 'usuario-propio'
 
 const MENSAJES_CONTEXTO: Record<ContextoError, Partial<Record<CodigoError, string>>> = {
   // El backend responde 409 CONFLICTO cuando el documento ya existe.
   'documento-duplicado': {
     CONFLICTO: 'Ya existe un residente con ese documento.',
+  },
+  // El backend responde 409 CONFLICTO cuando el correo ya esta registrado
+  // (comparacion sin distinguir mayusculas).
+  'correo-duplicado': {
+    CONFLICTO: 'Ya existe un usuario con ese correo.',
+  },
+  // El backend responde 409 CONFLICTO si un administrador intenta quitarse su
+  // propio rol o desactivar su propia cuenta.
+  'usuario-propio': {
+    CONFLICTO: 'No puedes cambiar tu propio rol ni desactivar tu cuenta.',
   },
 }
 

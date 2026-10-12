@@ -2,11 +2,14 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { EnConstruccion } from '@/components/ui/EnConstruccion'
 import { RutaLogin } from '@/app/RutaLogin'
 import { RutaProtegida } from '@/features/auth/guards/RutaProtegida'
+import { CambioContrasena } from '@/features/auth/CambioContrasena'
 import { PanelAdministrador } from '@/features/dashboard/PanelAdministrador'
 import { VistaCuidador } from '@/features/cuidador/VistaCuidador'
 import { ListadoResidentes } from '@/features/pacientes/ListadoResidentes'
 import { DetalleResidente } from '@/features/pacientes/DetalleResidente'
 import { FormularioResidente } from '@/features/pacientes/FormularioResidente'
+import { ListadoUsuarios } from '@/features/usuarios/ListadoUsuarios'
+import { FormularioUsuario } from '@/features/usuarios/FormularioUsuario'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { MainLayout } from '@/layouts/MainLayout'
 
@@ -55,9 +58,26 @@ export const router = createBrowserRouter([
           { path: '/bitacora', element: <EnConstruccion titulo="Bitacora" /> },
           { path: '/alertas', element: <EnConstruccion titulo="Alertas" /> },
           { path: '/reportes', element: <EnConstruccion titulo="Reportes" /> },
-          { path: '/usuarios', element: <EnConstruccion titulo="Usuarios" /> },
         ],
       },
+      {
+        element: <MainLayout titulo="Usuarios" />,
+    children: [
+          { path: '/usuarios', element: <ListadoUsuarios /> },
+          { path: '/usuarios/nuevo', element: <FormularioUsuario /> },
+          { path: '/usuarios/:id/editar', element: <FormularioUsuario /> },
+        ],
+      },
+    ],
+  },
+  // Cambio de la propia contrasena: cualquier rol autenticado.
+  {
+    element: <RutaProtegida />,
+    children: [
+      {
+        element: <MainLayout titulo="Mi cuenta" />,
+        children: [{ path: '/cuenta/contrasena', element: <CambioContrasena /> }],
+  },
     ],
   },
   {

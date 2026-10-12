@@ -1,4 +1,5 @@
-import { Bell, LogOut, Menu, Search } from 'lucide-react'
+import { Bell, KeyRound, LogOut, Menu, Search } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { MarcaMediTrack } from '@/components/layout/MarcaMediTrack'
 import { useAutenticacion } from '@/features/auth/useAutenticacion'
 import type { RolUsuario } from '@/features/auth/types'
@@ -61,6 +62,14 @@ export function EncabezadoApp({ titulo }: PropsEncabezadoApp) {
             <small>{usuario ? ETIQUETA_ROL[usuario.rol] : ''}</small>
           </span>
         </div>
+        <Link
+          to="/cuenta/contrasena"
+          className="icon-button"
+          aria-label="Cambiar contraseña"
+          title="Cambiar contraseña"
+        >
+          <KeyRound size={19} />
+        </Link>
         <button className="icon-button" onClick={cerrarSesion} aria-label="Cerrar sesion" title="Cerrar sesion">
           <LogOut size={19} />
         </button>

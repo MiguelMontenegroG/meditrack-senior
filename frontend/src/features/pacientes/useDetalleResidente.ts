@@ -8,7 +8,7 @@ import { mensajeDeFallo } from '@/lib/mensajes-error'
 import { obtenerPaciente } from '@/features/pacientes/services/pacienteService'
 import { listarFamiliares } from '@/features/pacientes/services/familiarService'
 import { listarCuidadores } from '@/features/pacientes/services/cuidadorService'
-import { listarUsuariosPorRol } from '@/features/pacientes/services/usuarioService'
+import { listarUsuariosPorRol } from '@/features/usuarios/services/usuarioService'
 import type {
   AsignacionCuidador,
   PacienteDetalle,

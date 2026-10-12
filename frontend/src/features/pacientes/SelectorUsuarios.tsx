@@ -8,8 +8,8 @@ import { EstadoCarga } from '@/components/ui/EstadoCarga'
 import type { RolUsuario } from '@/features/pacientes/types'
 import {
   listarUsuariosPorRol,
-  type UsuarioListado,
-} from '@/features/pacientes/services/usuarioService'
+} from '@/features/usuarios/services/usuarioService'
+import type { Usuario } from '@/features/usuarios/types'
 
 interface PropsSelectorUsuarios {
   rol: RolUsuario
@@ -21,7 +21,7 @@ interface PropsSelectorUsuarios {
 
 /** Desplegable de usuarios activos de un rol, excluyendo los ya vinculados. */
 export function SelectorUsuarios({ rol, excluirIds, valor, alCambiar }: PropsSelectorUsuarios) {
-  const [usuarios, setUsuarios] = useState<UsuarioListado[] | null>(null)
+  const [usuarios, setUsuarios] = useState<Usuario[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {

@@ -34,6 +34,12 @@ export interface ErrorApi {
   detalles?: string[] | null
 }
 
+/** Cuerpo que espera PUT /api/auth/contrasena. */
+export interface DatosCambioContrasena {
+  contrasenaActual: string
+  contrasenaNueva: string
+}
+
 /** Roles con derecho a navegar a la ruta inicial de cada panel. */
 export const RUTA_INICIAL_ROL: Record<RolUsuario, string> = {
   ADMINISTRADOR: '/dashboard',
