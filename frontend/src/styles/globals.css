@@ -139,3 +139,31 @@ button,input { font:inherit; } button { cursor:pointer; } button:focus-visible,i
   .buscador-residentes{min-width:0}
   .confirmacion{margin:14px 14px 16px}
 }
+
+/* ---------------------------------------------------------------- */
+/* Modulo de usuarios (gestion) y cambio de contrasena.             */
+/* ---------------------------------------------------------------- */
+
+/* Filtro por rol del listado de usuarios. */
+.filtro-rol{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:#5b6a6e}
+.filtro-rol select{min-height:44px;border:1px solid var(--border);border-radius:6px;padding:0 12px;background:#fff;color:#1e2b2f;font-size:15px}
+
+/* Marcador "Tu" sobre el usuario autenticado en la lista. */
+.marca-tu{margin-left:6px;background:#e1eff0;color:#0e5a64;font-size:11px;font-weight:700;padding:1px 6px;border-radius:10px;vertical-align:middle}
+
+/* Accion de estado (activar) con su posible error de conflicto. */
+.estado-accion{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px}
+
+/* Aviso de exito del cambio de contrasena. */
+.aviso-exito{display:flex;align-items:center;gap:8px;margin:0;padding:11px 13px;background:#e3f1ea;border:1px solid #bfe0cf;border-radius:6px;color:#2f7d5a;font-size:14px;font-weight:700}
+
+/* El campo de contrasena del formulario de usuario conserva el boton
+   mostrar/ocultar del login, pero con su propio alto tactil. */
+.formulario-residente .password-field{position:relative;display:block}
+.formulario-residente .password-field input{padding-right:90px!important}
+.formulario-residente .password-field button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:#0e5a64;font-size:13px;font-weight:700;min-height:36px;padding:0 8px;border-radius:6px}
+
+@media(max-width:767px){
+  .filtro-rol{width:100%}
+  .filtro-rol select{width:100%}
+}

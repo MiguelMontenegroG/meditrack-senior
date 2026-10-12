@@ -1,0 +1,54 @@
+flowchart TB
+    subgraph API["backend/ — pacote co.edu.uniquindio.meditrack"]
+        direction TB
+        subgraph WEB["infrastructure/web"]
+            C1["PacienteController<br/>/api/pacientes"]
+            C2["ContactoEmergenciaController"]
+            C3["VinculacionFamiliarController"]
+            C4["AsignacionCuidadorController"]
+            GW["GlobalExceptionHandler<br/>ApiError 400/401/403/404/409"]
+        end
+        subgraph APP["application (casos de uso, POJOs)"]
+            UC["11 casos de uso paciente:<br/>crear, listar (alcance+paginación),<br/>obtener, actualizar, estado,<br/>contactos, familiares, cuidadores"]
+            DOM["domain:<br/>Paciente · AlcancePaciente ·<br/>Contacto/Vinculacion/Asignacion"]
+        end
+        subgraph PORTS["application/ports"]
+            P1["PacienteRepositoryPort"]
+            P2["ContactoEmergenciaRepositoryPort"]
+            P3["VinculacionFamiliarRepositoryPort"]
+            P4["AsignacionCuidadorRepositoryPort"]
+        end
+        subgraph PERS["infrastructure/persistence"]
+            J1["PacienteJpaRepository<br/>(filtro de alcance en consulta)"]
+            A1["PacienteRepositoryAdapter"]
+            A2["ContactoRepositoryAdapter"]
+            A3["VinculacionRepositoryAdapter"]
+            A4["AsignacionRepositoryAdapter"]
+            ENT["Entidades JPA<br/>mapeadas a V2__modelo_inicial.sql"]
+        end
+        CFG["config/PacienteUseCaseConfig<br/>beans + Clock"]
+        AUD["AuditoriaPort (shared)"]
+    end
+
+    DB[("PostgreSQL<br/>paciente · contacto_emergencia<br/>vinculacion_familiar · asignacion_cuidador")]
+
+    C1 & C2 & C3 & C4 -->|"DTOs validados"| UC
+    C1 & C2 & C3 & C4 --- GW
+    UC --> DOM
+    UC --> P1 & P2 & P3 & P4
+    UC -->|"READ/CREATE/UPDATE"| AUD
+    P1 --- A1
+    P2 --- A2
+    P3 --- A3
+    P4 --- A4
+    A1 & A2 & A3 & A4 --> J1
+    A1 & A2 & A3 & A4 --> ENT
+    J1 -->|"SQL"| DB
+    CFG -. "inyecta beans" .-> UC
+
+    classDef web fill:#2a9daa,color:#fff;
+    classDef app fill:#12707d,color:#fff;
+    classDef pers fill:#6b7f85,color:#fff;
+    class C1,C2,C3,C4,GW web;
+    class UC,DOM,P1,P2,P3,P4,CFG app;
+    class J1,A1,A2,A3,A4,ENT pers;

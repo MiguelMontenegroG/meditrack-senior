@@ -21,7 +21,7 @@ vi.mock('@/features/pacientes/services/familiarService', () => ({
 vi.mock('@/features/pacientes/services/cuidadorService', () => ({
   listarCuidadores: (...args: unknown[]) => listarCuidadores(...args),
 }))
-vi.mock('@/features/pacientes/services/usuarioService', () => ({
+vi.mock('@/features/usuarios/services/usuarioService', () => ({
   listarUsuariosPorRol: vi.fn().mockResolvedValue([]),
 }))
 vi.mock('@/features/auth/useAutenticacion', () => ({

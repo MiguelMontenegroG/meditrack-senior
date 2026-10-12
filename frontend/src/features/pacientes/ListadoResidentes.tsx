@@ -1,4 +1,4 @@
-// Pantalla de listado de residentes. Todos los roles autenticados la ven;
+﻿// Pantalla de listado de residentes. Todos los roles autenticados la ven;
 // el backend ya filtra por alcance. Aqui solo se reflejan permisos y estados.
 
 import { useEffect, useMemo, useState } from 'react'
@@ -15,7 +15,7 @@ import { puedeEscribir } from '@/features/pacientes/permisos'
 import { listarPacientes } from '@/features/pacientes/services/pacienteService'
 import type { PaginaPacientes } from '@/features/pacientes/types'
 import { BuscadorResidentes, FiltroEstado } from '@/features/pacientes/ControlesListado'
-import { Paginacion } from '@/features/pacientes/Paginacion'
+import { Paginacion } from '@/components/ui/Paginacion'
 import { TablaListado } from '@/features/pacientes/TablaListado'
 import { TarjetasListado } from '@/features/pacientes/TarjetasListado'
 
@@ -121,6 +121,8 @@ export function ListadoResidentes() {
               pagina={datos.pagina}
               totalPaginas={datos.totalPaginas}
               total={datos.total}
+              sustantivo={{ singular: 'residente', plural: 'residentes' }}
+              etiqueta="Paginacion de residentes"
               alCambiarPagina={setPagina}
             />
           )}

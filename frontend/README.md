@@ -75,30 +75,17 @@ npm run test
   reintento y visibilidad de acciones segun permisos.
 - `src/features/pacientes/DetalleResidente.test.tsx`: 404 "no encontrado",
   datos cargados y secciones segun el rol.
+- `src/features/usuarios/services/usuarioService.test.ts`: query string,
+  detalle, alta, edicion, cambio de estado y listado por rol.
+- `src/features/usuarios/ListadoUsuarios.test.tsx`: carga, vacio, error con
+  reintento, filtros y marcador "Tu".
+- `src/features/usuarios/FormularioUsuario.test.tsx`: validacion, alta y
+  conflicto de correo duplicado (409).
+- `src/features/auth/CambioContrasena.test.tsx`: validacion, exito, contrasena
+  actual incorrecta (409) y cierre de sesion si el token caduca.
 
 No requieren backend: `fetch` se simula con `vi.stubGlobal`.
 
-
-Es decir, las tres líneas nuevas van entre `...cierre de sesion.` y la línea en blanco que hay antes de `No requieren backend`.
-
-Y en `## Estructura de carpetas`, dentro del bloque de `features/`, reemplaza:
-
-```
-    │   ├── auth/              # Inicio de sesion, AuthContext y contrato de tipos
-    │   ├── dashboard/         # Panel de administrador (KPI, graficos, mocks)
-    │   ├── cuidador/          # Vista del cuidador enfermero
-    │   └── pacientes/ medicacion/ citas/ bitacora/ reportes/ admin/  (por implementar)
-```
-
-por:
-
-```
-    │   ├── auth/              # Inicio de sesion, AuthContext y contrato de tipos
-    │   ├── dashboard/         # Panel de administrador (KPI, graficos, mocks)
-    │   ├── cuidador/          # Vista del cuidador enfermero
-    │   ├── pacientes/         # Listado, detalle, formularios y gestion (residentes)
-    │   └── medicacion/ citas/ bitacora/ reportes/ admin/  (por implementar)
-```
 ## Autenticacion
 
 - El login consume `POST /api/auth/login` y valida la sesion con
@@ -122,6 +109,24 @@ por:
   (mostrado como "Residente no encontrado") y la escritura sin permiso `403`.
   La interfaz solo decide que controles mostrar.
 
+## Modulo de usuarios
+
+- **Gestion de usuarios** (`/usuarios`): solo ADMINISTRADOR. Listado con
+  filtros por rol y estado, paginacion y acceso a alta/edicion. El propio
+  usuario autenticado aparece marcado como "Tu".
+- **Alta/edicion** (`/usuarios/nuevo`, `/usuarios/:id/editar`): solo
+  ADMINISTRADOR. El correo no se modifica en edicion y la contrasena solo se
+  pide al crear.
+- **Reglas del backend**: solo ADMINISTRADOR gestiona usuarios; un
+  administrador no puede desactivarse ni quitarse su propio rol (`409`); el
+  correo es unico (`409`). La interfaz solo decide que controles mostrar.
+
+## Cambio de contrasena
+
+- **`/cuenta/contrasena`**: cualquier usuario autenticado cambia su propia
+  contrasena (actual, nueva y confirmacion). Tras el exito se revalida el
+  token con `GET /api/auth/me`; si dejo de ser valido, se cierra la sesion.
+- Se accede desde el icono de llave del encabezado.
 ## Estructura de carpetas
 
 ```
@@ -143,7 +148,9 @@ frontend/
     │   ├── auth/              # Inicio de sesion, AuthContext y contrato de tipos
     │   ├── dashboard/         # Panel de administrador (KPI, graficos, mocks)
     │   ├── cuidador/          # Vista del cuidador enfermero
-    │   └── pacientes/ medicacion/ citas/ bitacora/ reportes/ admin/  (por implementar)
+    │   ├── pacientes/         # Listado, detalle, formularios y gestion (residentes)
+    │   ├── usuarios/          # Gestion de usuarios (solo ADMINISTRADOR)
+    │   └── medicacion/ citas/ bitacora/ reportes/ admin/  (por implementar)
     ├── layouts/               # AuthLayout y MainLayout
     ├── lib/                   # Utilidades (cn)
     └── styles/                # Hojas de estilo globales (globals.css)

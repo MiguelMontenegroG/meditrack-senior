@@ -5,6 +5,7 @@
 import { apiClient } from '@/lib/api-client'
 import type {
   CredencialesInicioSesion,
+  DatosCambioContrasena,
   RespuestaInicioSesion,
   UsuarioAutenticado,
 } from '@/features/auth/types'
@@ -23,4 +24,9 @@ export function iniciarSesion(credenciales: CredencialesInicioSesion): Promise<R
 /** Obtiene los datos del usuario autenticado (GET /api/auth/me). */
 export function obtenerUsuarioActual(): Promise<UsuarioAutenticado> {
   return apiClient.get<UsuarioAutenticado>('/auth/me')
+}
+
+/** Cambia la contrasena del usuario autenticado (PUT /api/auth/contrasena). */
+export function cambiarContrasena(datos: DatosCambioContrasena): Promise<void> {
+  return apiClient.put<void>('/auth/contrasena', datos)
 }

@@ -1,0 +1,50 @@
+flowchart TB
+    subgraph Monorepo["Monorepo GitHub — meditrack-senior"]
+        direction LR
+        subgraph FE["frontend/"]
+            SPA["SPA estática<br/>Vite + React 19 + TS<br/>Tailwind CSS v4 · React Router 7<br/>AuthContext · api-client (fetch)"]
+        end
+        subgraph BE["backend/ — monolito modular por feature"]
+            direction TB
+            SEC["config/ Seguridad<br/>SecurityFilterChain · JWT filter<br/>BCrypt · @PreAuthorize · CORS"]
+            subgraph MODS["Módulos de dominio (hexagonal)"]
+                direction LR
+                M1["usuario"]
+                M2["paciente"]
+                M3["medicacion*"]
+                M4["cita*"]
+                M5["bitacora*"]
+                M6["alerta*"]
+                M7["reporte*"]
+                M8["dashboard*"]
+            end
+            APP["application/<br/>Casos de uso (POJOs)<br/>+ Puertos"]
+            INF["infrastructure/<br/>web: Controllers REST<br/>persistence: JPA + adaptadores"]
+            SCH["Scheduler<br/>reglas de alertas"]
+            AUD["shared/<br/>AuditoriaPort → auditoria_acceso"]
+        end
+        subgraph DOCS["docs/ · infra/ · .github/"]
+            D1["openapi.yaml · modelo-datos.md"]
+        end
+    end
+
+    DB[("PostgreSQL 16<br/>16 tablas · Flyway V1–V3<br/>ddl-auto: validate")]
+    SWA(["Azure Static Web Apps"])
+    APPSVC(["Azure App Service (Docker)"])
+
+    SPA -->|"HTTPS JSON /api/**<br/>Authorization: Bearer"| SEC
+    SEC --> MODS
+    MODS --> APP
+    APP --> INF
+    SCH --> M6
+    APP --> AUD
+    INF -->|"JDBC"| DB
+    SPA -. "despliegue" .-> SWA
+    BE -. "despliegue" .-> APPSVC
+
+    classDef mod fill:#2a9daa,color:#fff;
+    classDef infra fill:#6b7f85,color:#fff;
+    classDef ext fill:#94a3ab,color:#fff;
+    class M1,M2,M3,M4,M5,M6,M7,M8 mod;
+    class SEC,APP,INF,SCH,AUD infra;
+    class DB ext;
