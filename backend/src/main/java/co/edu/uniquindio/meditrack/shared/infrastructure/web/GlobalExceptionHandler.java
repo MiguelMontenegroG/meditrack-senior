@@ -6,6 +6,7 @@ import co.edu.uniquindio.meditrack.shared.domain.CredencialesInvalidasException;
 import co.edu.uniquindio.meditrack.shared.domain.DomainException;
 import co.edu.uniquindio.meditrack.shared.domain.NoAutenticadoException;
 import co.edu.uniquindio.meditrack.shared.domain.RecursoNoEncontradoException;
+import co.edu.uniquindio.meditrack.shared.domain.ValidacionDeNegocioException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -72,6 +73,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> manejarNoEncontrado(RecursoNoEncontradoException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiError.de(404, ex.getCodigo(), ex.getMessage()));
+    }
+
+    /** Dato mal formado o incoherente: problema de la peticion, no del estado. */
+    @ExceptionHandler(ValidacionDeNegocioException.class)
+    public ResponseEntity<ApiError> manejarValidacionDeNegocio(ValidacionDeNegocioException ex) {
+        return ResponseEntity.badRequest()
+                .body(ApiError.de(400, ex.getCodigo(), ex.getMessage()));
     }
 
     @ExceptionHandler(ConflictoDeNegocioException.class)

@@ -83,3 +83,22 @@ mvn clean verify
 
 La prueba de contexto (`MeditrackApplicationTests`) excluye las
 autoconfiguraciones de base de datos, por lo que no necesita PostgreSQL.
+
+Las pruebas de integracion de persistencia (bajo `infrastructure/persistence`)
+extienden `BasePruebaPostgres`, que levanta un PostgreSQL 16 efimero con
+**Testcontainers** (requiere Docker en ejecucion) y aplica las migraciones Flyway
+reales. El contenedor se arranca una sola vez por JVM y se comparte entre clases;
+cada prueba se revierte con `@Transactional`. Son las que detectan errores de
+tipado SQL (bytea/timestamp/SMALLINT) que los mocks no ven.
+
+## Rutas del modulo de medicacion
+
+- Catalogo: `GET/POST /api/medicamentos`, `PUT /api/medicamentos/{id}`,
+  `PATCH /api/medicamentos/{id}/estado`.
+- Esquemas: `/api/pacientes/{pacienteId}/esquemas` (listado, detalle, alta, edicion
+  y `PATCH /api/pacientes/{pacienteId}/esquemas/{esquemaId}/estado`).
+- Tomas: `POST /api/pacientes/{pacienteId}/esquemas/{esquemaId}/tomas` (registro),
+  `GET /api/pacientes/{pacienteId}/tomas/agenda` y
+  `GET /api/pacientes/{pacienteId}/tomas/historial`.
+
+El contrato completo esta en `docs/api/openapi.yaml`.
