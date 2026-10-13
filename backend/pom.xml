@@ -124,6 +124,30 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Testcontainers: levanta un PostgreSQL efimero en las pruebas de
+             integracion de la capa de persistencia. Permite ejecutar las
+             consultas reales (JPQL) contra el mismo motor que produccion
+             (PostgreSQL), detectando errores que las pruebas con mocks no
+             ven. Version 1.20.4, compatible con Spring Boot 3.4.1. -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>1.20.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.20.4</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- @ServiceConnection de Spring Boot para Testcontainers. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

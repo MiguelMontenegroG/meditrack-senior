@@ -1,0 +1,14 @@
+# Perfil de pruebas de integracion.
+# El DataSource lo provee Testcontainers desde BasePruebaPostgres (via
+# @DynamicPropertySource), por lo que aqui no se fija ninguna URL ni
+# credenciales: asi las pruebas no dependen del .env.
+spring:
+  jpa:
+    show-sql: false
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+meditrack:
+  swagger-habilitado: false

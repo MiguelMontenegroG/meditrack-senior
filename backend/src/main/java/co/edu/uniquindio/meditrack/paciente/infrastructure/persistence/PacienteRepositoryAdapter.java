@@ -2,6 +2,7 @@ package co.edu.uniquindio.meditrack.paciente.infrastructure.persistence;
 
 import co.edu.uniquindio.meditrack.paciente.application.port.PacienteRepositoryPort;
 import co.edu.uniquindio.meditrack.paciente.domain.Paciente;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,6 +17,13 @@ import java.util.Optional;
  *
  * <p>La paginacion y el filtrado por alcance se delegan a la consulta; nunca se
  * cargan todos los pacientes en memoria en la capa de aplicacion.</p>
+ *
+ * <p>Los filtros opcionales ({@code texto} y {@code activo}) se resuelven con
+ * una consulta por combinacion de filtros presentes (y una por alcance): asi
+ * nunca se envia a PostgreSQL un parametro nulo, que era lo que obligaba a los
+ * {@code cast(... as string)} / {@code cast(... as boolean)} y provocaba errores
+ * de tipado. La busqueda por texto vacio se normaliza a nulo antes de decidir
+ * la combinacion.</p>
  */
 @Component
 public class PacienteRepositoryAdapter implements PacienteRepositoryPort {
@@ -60,34 +68,102 @@ public class PacienteRepositoryAdapter implements PacienteRepositoryPort {
         return repositorio.existsByDocumentoAndIdNot(documento, idExcluido);
     }
 
+    // --- Listado y conteo por alcance (una consulta por combinacion de filtros). ---
+
     @Override
     public List<Paciente> listarTodos(String texto, Boolean activo, int pagina, int tamano) {
-        return map(repositorio.listarTodos(textoVacioANulo(texto), activo, pageable(pagina, tamano)).getContent());
+        String t = textoVacioANulo(texto);
+        Pageable pageable = pageable(pagina, tamano);
+        Page<PacienteEntity> resultado;
+        if (t != null && activo != null) {
+            resultado = repositorio.listarTodosPorTextoYActivo(t, activo, pageable);
+        } else if (t != null) {
+            resultado = repositorio.listarTodosPorTexto(t, pageable);
+        } else if (activo != null) {
+            resultado = repositorio.listarTodosPorActivo(activo, pageable);
+        } else {
+            resultado = repositorio.listarTodosSinFiltros(pageable);
+        }
+        return map(resultado.getContent());
     }
 
     @Override
     public long contarTodos(String texto, Boolean activo) {
-        return repositorio.contarTodos(textoVacioANulo(texto), activo);
+        String t = textoVacioANulo(texto);
+        if (t != null && activo != null) {
+            return repositorio.contarTodosPorTextoYActivo(t, activo);
+        }
+        if (t != null) {
+            return repositorio.contarTodosPorTexto(t);
+        }
+        if (activo != null) {
+            return repositorio.contarTodosPorActivo(activo);
+        }
+        return repositorio.contarTodosSinFiltros();
     }
 
     @Override
     public List<Paciente> listarPorCuidador(String texto, Boolean activo, Long cuidadorId, int pagina, int tamano) {
-        return map(repositorio.listarPorCuidador(textoVacioANulo(texto), activo, cuidadorId, pageable(pagina, tamano)).getContent());
+        String t = textoVacioANulo(texto);
+        Pageable pageable = pageable(pagina, tamano);
+        Page<PacienteEntity> resultado;
+        if (t != null && activo != null) {
+            resultado = repositorio.listarCuidadorPorTextoYActivo(t, activo, cuidadorId, pageable);
+        } else if (t != null) {
+            resultado = repositorio.listarCuidadorPorTexto(t, cuidadorId, pageable);
+        } else if (activo != null) {
+            resultado = repositorio.listarCuidadorPorActivo(activo, cuidadorId, pageable);
+        } else {
+            resultado = repositorio.listarCuidadorSinFiltros(cuidadorId, pageable);
+        }
+        return map(resultado.getContent());
     }
 
     @Override
     public long contarPorCuidador(String texto, Boolean activo, Long cuidadorId) {
-        return repositorio.contarPorCuidador(textoVacioANulo(texto), activo, cuidadorId);
+        String t = textoVacioANulo(texto);
+        if (t != null && activo != null) {
+            return repositorio.contarCuidadorPorTextoYActivo(t, activo, cuidadorId);
+        }
+        if (t != null) {
+            return repositorio.contarCuidadorPorTexto(t, cuidadorId);
+        }
+        if (activo != null) {
+            return repositorio.contarCuidadorPorActivo(activo, cuidadorId);
+        }
+        return repositorio.contarCuidadorSinFiltros(cuidadorId);
     }
 
     @Override
     public List<Paciente> listarPorFamiliar(String texto, Boolean activo, Long familiarId, int pagina, int tamano) {
-        return map(repositorio.listarPorFamiliar(textoVacioANulo(texto), activo, familiarId, pageable(pagina, tamano)).getContent());
+        String t = textoVacioANulo(texto);
+        Pageable pageable = pageable(pagina, tamano);
+        Page<PacienteEntity> resultado;
+        if (t != null && activo != null) {
+            resultado = repositorio.listarFamiliarPorTextoYActivo(t, activo, familiarId, pageable);
+        } else if (t != null) {
+            resultado = repositorio.listarFamiliarPorTexto(t, familiarId, pageable);
+        } else if (activo != null) {
+            resultado = repositorio.listarFamiliarPorActivo(activo, familiarId, pageable);
+        } else {
+            resultado = repositorio.listarFamiliarSinFiltros(familiarId, pageable);
+        }
+        return map(resultado.getContent());
     }
 
     @Override
     public long contarPorFamiliar(String texto, Boolean activo, Long familiarId) {
-        return repositorio.contarPorFamiliar(textoVacioANulo(texto), activo, familiarId);
+        String t = textoVacioANulo(texto);
+        if (t != null && activo != null) {
+            return repositorio.contarFamiliarPorTextoYActivo(t, activo, familiarId);
+        }
+        if (t != null) {
+            return repositorio.contarFamiliarPorTexto(t, familiarId);
+        }
+        if (activo != null) {
+            return repositorio.contarFamiliarPorActivo(activo, familiarId);
+        }
+        return repositorio.contarFamiliarSinFiltros(familiarId);
     }
 
     @Override
@@ -108,6 +184,7 @@ public class PacienteRepositoryAdapter implements PacienteRepositoryPort {
     private Pageable pageable(int pagina, int tamano) {
         return PageRequest.of(pagina, tamano, Sort.by(Sort.Direction.DESC, "id"));
     }
+
     private List<Paciente> map(List<PacienteEntity> entidades) {
         return entidades.stream().map(this::aDominio).toList();
     }
