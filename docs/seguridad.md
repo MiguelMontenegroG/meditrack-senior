@@ -202,3 +202,35 @@ Reglas aplicadas:
 - Un usuario autenticado sin un rol conocido no obtiene alcance (no se otorga
   acceso por defecto).
 - La escritura exige `ADMINISTRADOR` con `@PreAuthorize("hasRole('ADMINISTRADOR')")`.
+
+## 14. Alcance sobre la medicacion (modulo medicacion)
+
+El modulo de medicacion reutiliza el alcance del modulo paciente a traves del
+adaptador `PacienteAlcanceAdapter` (no duplica la logica de visibilidad ni accede
+a las tablas del modulo paciente de forma directa). Antes de operar sobre un
+residente se resuelve su visibilidad con `VerificadorAlcanceResidente`:
+
+- `ADMINISTRADOR`: catalogo de medicamentos, esquemas y horarios; lectura y
+  escritura; registra tomas de cualquier residente existente.
+- `CUIDADOR_ENFERMERO`: lectura de esquemas y tomas, y registro de tomas, solo de
+  residentes con **asignacion vigente**. No crea ni edita esquemas ni catalogo.
+- `FAMILIAR_AUTORIZADO`: solo lectura de esquemas, agenda e historial de
+  residentes con **vinculacion autorizada**. Nunca escribe.
+
+Reglas aplicadas:
+
+- Un residente inexistente o fuera de alcance responde **404** (nunca 403) y se
+  audita como `READ` **DENEGADO**; un residente inactivo responde **409** en las
+  operaciones de escritura (no admite nuevos esquemas ni tomas).
+- La agenda del dia y los estados **PENDIENTE** y **ATRASADA** se calculan en el
+  dominio (`CalendarioTomas`) y **nunca se persisten**: la tabla `registro_toma`
+  solo admite `ADMINISTRADA` y `OMITIDA`.
+- Los registros de toma son **append-only** (Ley 1581): nunca se editan ni se
+  borran; un error se corrige con una nueva observacion.
+- El autor de una toma (`registradoPor`) sale siempre del usuario autenticado,
+  nunca del cuerpo de la peticion.
+- El alcance se resuelve con metodos separados por rol (igual que en el modulo
+  paciente) para evitar el problema de tipado de Hibernate 6.6.
+
+Eventos auditados del modulo: `CREATE`/`UPDATE` de medicamentos y esquemas,
+`CREATE` de tomas y `READ` de esquemas, agenda e historial (EXITOSO y DENEGADO).
