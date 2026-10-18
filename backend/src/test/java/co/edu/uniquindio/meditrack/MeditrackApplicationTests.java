@@ -1,5 +1,7 @@
 package co.edu.uniquindio.meditrack;
 
+import co.edu.uniquindio.meditrack.cita.infrastructure.persistence.CitaJpaRepository;
+import co.edu.uniquindio.meditrack.cita.infrastructure.persistence.EspecialidadJpaRepository;
 import co.edu.uniquindio.meditrack.medicacion.infrastructure.persistence.EsquemaMedicacionJpaRepository;
 import co.edu.uniquindio.meditrack.medicacion.infrastructure.persistence.HorarioMedicacionJpaRepository;
 import co.edu.uniquindio.meditrack.medicacion.infrastructure.persistence.MedicamentoJpaRepository;
@@ -73,6 +75,12 @@ class MeditrackApplicationTests {
 
     @MockitoBean
     private RegistroTomaJpaRepository registroTomaJpaRepository;
+
+    @MockitoBean
+    private CitaJpaRepository citaJpaRepository;
+
+    @MockitoBean
+    private EspecialidadJpaRepository especialidadJpaRepository;
 
     @Test
     void contextLoads() {
