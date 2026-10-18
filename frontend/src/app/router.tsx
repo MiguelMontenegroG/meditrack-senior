@@ -10,6 +10,10 @@ import { DetalleResidente } from '@/features/pacientes/DetalleResidente'
 import { FormularioResidente } from '@/features/pacientes/FormularioResidente'
 import { ListadoUsuarios } from '@/features/usuarios/ListadoUsuarios'
 import { FormularioUsuario } from '@/features/usuarios/FormularioUsuario'
+import { ListadoMedicamentosCatalogo } from '@/features/medicacion/ListadoMedicamentos'
+import { FormularioMedicamento } from '@/features/medicacion/FormularioMedicamento'
+import { FormularioEsquema } from '@/features/medicacion/FormularioEsquema'
+import { TomasResidente } from '@/features/medicacion/TomasResidente'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { MainLayout } from '@/layouts/MainLayout'
 
@@ -30,6 +34,8 @@ export const router = createBrowserRouter([
         children: [
           { path: '/residentes/nuevo', element: <FormularioResidente /> },
           { path: '/residentes/:id/editar', element: <FormularioResidente /> },
+          { path: '/residentes/:id/esquemas/nuevo', element: <FormularioEsquema /> },
+          { path: '/residentes/:id/esquemas/:esquemaId/editar', element: <FormularioEsquema /> },
         ],
       },
     ],
@@ -43,6 +49,7 @@ export const router = createBrowserRouter([
         children: [
           { path: '/residentes', element: <ListadoResidentes /> },
           { path: '/residentes/:id', element: <DetalleResidente /> },
+          { path: '/residentes/:id/tomas', element: <TomasResidente /> },
         ],
       },
     ],
@@ -66,6 +73,29 @@ export const router = createBrowserRouter([
           { path: '/usuarios', element: <ListadoUsuarios /> },
           { path: '/usuarios/nuevo', element: <FormularioUsuario /> },
           { path: '/usuarios/:id/editar', element: <FormularioUsuario /> },
+        ],
+      },
+    ],
+  },
+  // Catalogo de medicamentos: lectura ADMINISTRADOR y CUIDADOR_ENFERMERO; la
+  // escritura (nuevo/editar) queda restringida al ADMINISTRADOR mas abajo.
+  {
+    element: <RutaProtegida rolesPermitidos={['ADMINISTRADOR', 'CUIDADOR_ENFERMERO']} />,
+    children: [
+      {
+        element: <MainLayout titulo="Medicamentos" />,
+        children: [{ path: '/medicamentos', element: <ListadoMedicamentosCatalogo /> }],
+      },
+    ],
+  },
+  {
+    element: <RutaProtegida rolesPermitidos={['ADMINISTRADOR']} />,
+    children: [
+      {
+        element: <MainLayout titulo="Medicamentos" />,
+        children: [
+          { path: '/medicamentos/nuevo', element: <FormularioMedicamento /> },
+          { path: '/medicamentos/:id/editar', element: <FormularioMedicamento /> },
         ],
       },
     ],

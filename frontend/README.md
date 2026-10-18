@@ -83,6 +83,20 @@ npm run test
   conflicto de correo duplicado (409).
 - `src/features/auth/CambioContrasena.test.tsx`: validacion, exito, contrasena
   actual incorrecta (409) y cierre de sesion si el token caduca.
+- `src/features/medicacion/services/medicamentoService.test.ts`: query string del
+  catalogo, alta, edicion, cambio de estado y listado de activos.
+- `src/features/medicacion/services/esquemaService.test.ts`: listado con filtros,
+  detalle, alta, edicion y cambio de estado.
+- `src/features/medicacion/services/tomaService.test.ts`: registro, agenda (con y
+  sin fecha) e historial con filtros.
+- `src/features/medicacion/ListadoMedicamentos.test.tsx`: carga, vacio, error con
+  reintento y visibilidad del alta segun el rol.
+- `src/features/medicacion/FormularioMedicamento.test.tsx`: validacion, alta,
+  conflicto de nombre duplicado (409) y precarga al editar.
+- `src/features/medicacion/FormularioEsquema.test.tsx`: validacion de frecuencia y
+  horarios, alta y conflicto de solapamiento (409).
+- `src/features/medicacion/TomasResidente.test.tsx`: agenda con estados, registro
+  de toma (motivo obligatorio al omitir) y permisos por rol.
 
 No requieren backend: `fetch` se simula con `vi.stubGlobal`.
 
@@ -121,6 +135,25 @@ No requieren backend: `fetch` se simula con `vi.stubGlobal`.
   administrador no puede desactivarse ni quitarse su propio rol (`409`); el
   correo es unico (`409`). La interfaz solo decide que controles mostrar.
 
+## Modulo de medicacion
+
+- **Catalogo de medicamentos** (`/medicamentos`): lectura para ADMINISTRADOR y
+  CUIDADOR_ENFERMERO; alta, edicion y activar/desactivar solo para
+  ADMINISTRADOR. Busqueda por texto, filtro de estado y paginacion.
+- **Esquemas del residente** (`/residentes/:id/esquemas/nuevo` y
+  `/residentes/:id/esquemas/:esquemaId/editar`): solo ADMINISTRADOR. Se
+  muestran embebidos en el detalle del residente, junto con la agenda.
+- **Tomas del residente** (`/residentes/:id/tomas`): agenda del dia con el
+  estado calculado (pendiente/atrasada/administrada/omitida) e historial
+  paginado. Registrar tomas es exclusivo de ADMINISTRADOR y
+  CUIDADOR_ENFERMERO; al omitir se exige un motivo.
+- **Reglas del backend reflejadas**: nombre de medicamento unico (`409`),
+  solapamiento de vigencia de esquemas (`409`), toma duplicada o fuera de
+  horario (`409`/`400`). La interfaz solo decide que controles mostrar.
+- El inicio del CUIDADOR_ENFERMERO (`/cuidador`) lista las tomas pendientes y
+  atrasadas del dia construidas con datos reales (endpoints de pacientes y
+  tomas).
+
 ## Cambio de contrasena
 
 - **`/cuenta/contrasena`**: cualquier usuario autenticado cambia su propia
@@ -150,7 +183,8 @@ frontend/
     │   ├── cuidador/          # Vista del cuidador enfermero
     │   ├── pacientes/         # Listado, detalle, formularios y gestion (residentes)
     │   ├── usuarios/          # Gestion de usuarios (solo ADMINISTRADOR)
-    │   └── medicacion/ citas/ bitacora/ reportes/ admin/  (por implementar)
+    │   ├── medicacion/     # Catalogo, esquemas y tomas (agenda/historial)
+    │   └── citas/ bitacora/ reportes/ admin/  (por implementar)
     ├── layouts/               # AuthLayout y MainLayout
     ├── lib/                   # Utilidades (cn)
     └── styles/                # Hojas de estilo globales (globals.css)
