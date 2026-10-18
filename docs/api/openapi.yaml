@@ -293,10 +293,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CambiarEstadoRequest'
+              $ref: '#/components/schemas/PacienteEstadoRequest'
       responses:
         '200':
           description: Estado actualizado
+        '400':
+          description: >-
+            VALIDACION - se desactivo sin motivo, el motivo supera 200 caracteres,
+            el residente a activar no tiene situacion clinica o la fecha de
+            ingreso es futura.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
           content:
             application/json:
               schema:
@@ -350,7 +359,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/PacienteDetalle'
         '400':
-          description: Datos invalidos (por ejemplo, fecha de nacimiento futura)
+          description: >-
+            VALIDACION - campos invalidos (por ejemplo, fecha de nacimiento futura),
+            fecha de ingreso futura, o residente activo sin situacion clinica (la
+            habitacion es opcional: el producto cubre centros de dia).
           content:
             application/json:
               schema:
@@ -457,7 +469,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/PacienteDetalle'
         '400':
-          description: Datos invalidos
+          description: >-
+            VALIDACION - campos invalidos (por ejemplo, fecha de nacimiento futura),
+            fecha de ingreso futura, o residente activo sin situacion clinica (la
+            habitacion es opcional: el producto cubre centros de dia).
           content:
             application/json:
               schema:
@@ -491,6 +506,10 @@ paths:
     patch:
       tags: [Pacientes]
       summary: Activar o desactivar un paciente (solo ADMINISTRADOR; nunca borrado fisico)
+      description: >-
+        La desactivacion es un borrado logico y exige un motivo no vacio
+        (maximo 200 caracteres) que queda registrado en la auditoria. La
+        activacion no exige motivo: si se envia, se ignora.
       parameters:
         - $ref: '#/components/parameters/PacienteId'
       requestBody:
@@ -498,7 +517,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CambiarEstadoRequest'
+              $ref: '#/components/schemas/PacienteEstadoRequest'
       responses:
         '200':
           description: Estado actualizado
@@ -506,6 +525,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PacienteDetalle'
+        '400':
+          description: >-
+            VALIDACION - se desactivo sin motivo, el motivo supera 200 caracteres,
+            el residente a activar no tiene situacion clinica o la fecha de
+            ingreso es futura.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '401':
           description: Falta un token valido
           content:
@@ -951,10 +979,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CambiarEstadoRequest'
+              $ref: '#/components/schemas/PacienteEstadoRequest'
       responses:
         '200':
           description: Estado actualizado
+        '400':
+          description: >-
+            VALIDACION - se desactivo sin motivo, el motivo supera 200 caracteres,
+            el residente a activar no tiene situacion clinica o la fecha de
+            ingreso es futura.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
           content:
             application/json:
               schema:
@@ -1134,10 +1171,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CambiarEstadoRequest'
+              $ref: '#/components/schemas/PacienteEstadoRequest'
       responses:
         '200':
           description: Estado actualizado
+        '400':
+          description: >-
+            VALIDACION - se desactivo sin motivo, el motivo supera 200 caracteres,
+            el residente a activar no tiene situacion clinica o la fecha de
+            ingreso es futura.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
           content:
             application/json:
               schema:
@@ -1418,12 +1464,24 @@ components:
         rol:
           $ref: '#/components/schemas/RolNombre'
 
-    CambiarEstadoRequest:
+    PacienteEstadoRequest:
       type: object
+      description: >-
+        Estado de un residente. Solo el ADMINISTRADOR puede cambiarlo. La
+        desactivacion es un borrado logico que exige un motivo (dato de
+        auditoria, Ley 1581); al activar, el motivo se ignora.
       required: [activo]
       properties:
         activo:
           type: boolean
+          description: true activa el residente; false lo desactiva (borrado logico).
+        motivo:
+          type: string
+          maxLength: 200
+          nullable: true
+          description: >-
+            Obligatorio solo cuando activo = false (se guarda en la auditoria);
+            maximo 200 caracteres. Se ignora al activar.
 
     Usuario:
       type: object
