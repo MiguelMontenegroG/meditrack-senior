@@ -122,7 +122,8 @@ public class PacienteController {
             @PathVariable Long id,
             @Valid @RequestBody CambiarEstadoPacienteRequest peticion,
             Authentication autenticacion) {
-        Paciente actualizado = cambiarEstado.ejecutar(id, peticion.activo(), AlcanceWeb.usuarioId(autenticacion));
+        Paciente actualizado = cambiarEstado.ejecutar(
+                id, peticion.activo(), peticion.motivo(), AlcanceWeb.usuarioId(autenticacion));
         return ResponseEntity.ok(aDetalle(actualizado));
     }
 

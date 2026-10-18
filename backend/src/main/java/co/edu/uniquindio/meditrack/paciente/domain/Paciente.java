@@ -1,18 +1,23 @@
 package co.edu.uniquindio.meditrack.paciente.domain;
 
 import co.edu.uniquindio.meditrack.shared.domain.ConflictoDeNegocioException;
+import co.edu.uniquindio.meditrack.shared.domain.ValidacionDeNegocioException;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Perfil del adulto mayor residente (modelo de dominio, sin Spring ni JPA).
  *
  * <p>Concentra las reglas de negocio del perfil: validacion de datos basicos, la
  * fecha de nacimiento no futura (validada en la aplicacion, no hay CHECK con
- * {@code current_date}) y el borrado logico mediante {@code activo}. Nunca se
- * borra fisicamente un paciente.</p>
+ * {@code current_date}), la fecha de ingreso no futura, la coherencia del
+ * perfil clinico (un residente activo exige situacion clinica; la habitacion
+ * es opcional porque el producto tambien cubre centros de dia) y el borrado
+ * logico mediante {@code activo}. Nunca se borra fisicamente un paciente.</p>
  */
 public class Paciente {
 
@@ -57,7 +62,9 @@ public class Paciente {
     }
 
     /**
-     * Crea un paciente nuevo (sin id aun) listo para persistir.
+     * Crea un paciente nuevo (sin id aun) listo para persistir. El residente
+     * nace activo, por lo que exige la situacion clinica (la habitacion es
+     * opcional: el producto incluye centros de dia sin habitaciones).
      */
     public static Paciente nuevo(
             String documento,
@@ -70,6 +77,8 @@ public class Paciente {
             LocalDate fechaIngreso,
             LocalDate hoy) {
         validarDatos(documento, nombres, apellidos, fechaNacimiento, sexo, hoy);
+        validarFechaIngreso(fechaIngreso, hoy);
+        validarPerfilClinico(situacionClinica);
         return new Paciente(
                 null,
                 documento.trim(),
@@ -77,8 +86,8 @@ public class Paciente {
                 apellidos.trim(),
                 fechaNacimiento,
                 sexo,
-                habitacion,
-                situacionClinica,
+                normalizar(habitacion),
+                normalizar(situacionClinica),
                 fechaIngreso != null ? fechaIngreso : hoy,
                 true,
                 null,
@@ -99,24 +108,49 @@ public class Paciente {
             LocalDate fechaIngreso,
             LocalDate hoy) {
         validarDatos(documento, nombres, apellidos, fechaNacimiento, sexo, hoy);
+        validarFechaIngreso(fechaIngreso, hoy);
+        validarPerfilClinico(situacionClinica);
         this.documento = documento.trim();
         this.nombres = nombres.trim();
         this.apellidos = apellidos.trim();
         this.fechaNacimiento = fechaNacimiento;
         this.sexo = sexo;
-        this.habitacion = habitacion;
-        this.situacionClinica = situacionClinica;
+        this.habitacion = normalizar(habitacion);
+        this.situacionClinica = normalizar(situacionClinica);
         if (fechaIngreso != null) {
             this.fechaIngreso = fechaIngreso;
         }
     }
 
+    /** Activa el residente (solo si el perfil clinico esta completo). */
     public void activar() {
+        validarPerfilClinico(situacionClinica);
         this.activo = true;
     }
 
-    public void desactivar() {
+    /**
+     * Desactiva el residente (borrado logico). El motivo es obligatorio: se
+     * registra en la auditoria de acceso (Ley 1581) y permite explicar por que
+     * se retiro al residente del cuidado activo.
+     */
+    public void desactivar(String motivo) {
+        if (motivo == null || motivo.isBlank()) {
+            throw new ValidacionDeNegocioException("El motivo de la desactivacion es obligatorio");
+        }
         this.activo = false;
+    }
+
+    /**
+     * Datos clinicos que faltan para que el perfil este completo. Se usa para
+     * explicar en la respuesta por que un residente no puede activarse. La
+     * habitacion no cuenta: es opcional (centros de dia).
+     */
+    public List<String> datosClinicosPendientes() {
+        List<String> faltantes = new ArrayList<>();
+        if (situacionClinica == null || situacionClinica.isBlank()) {
+            faltantes.add("situacionClinica");
+        }
+        return faltantes;
     }
 
     /**
@@ -158,6 +192,33 @@ public class Paciente {
         if (sexo == null) {
             throw new ConflictoDeNegocioException("El sexo es obligatorio");
         }
+    }
+
+    /**
+     * La fecha de ingreso es opcional (por defecto hoy), pero si se envia no
+     * puede ser futura: un residente no puede ingresar manana.
+     */
+    private static void validarFechaIngreso(LocalDate fechaIngreso, LocalDate hoy) {
+        if (fechaIngreso != null && fechaIngreso.isAfter(hoy)) {
+            throw new ValidacionDeNegocioException("La fecha de ingreso no puede ser futura");
+        }
+    }
+
+    /**
+     * Un residente que va a quedar activo debe tener la situacion clinica. La
+     * regla se evalua tanto al crear como al editar; la habitacion no se exige
+     * porque el producto cubre tambien centros de dia sin habitaciones.
+     */
+    private static void validarPerfilClinico(String situacionClinica) {
+        if (situacionClinica == null || situacionClinica.isBlank()) {
+            throw new ValidacionDeNegocioException(
+                    "Un residente activo debe tener la situacion clinica");
+        }
+    }
+
+    /** Recorta y convierte a nulo los textos vacios. */
+    private static String normalizar(String valor) {
+        return (valor == null || valor.isBlank()) ? null : valor.trim();
     }
 
     public Long getId() {

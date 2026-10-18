@@ -14,6 +14,7 @@ import co.edu.uniquindio.meditrack.paciente.application.port.ContactoEmergenciaR
 import co.edu.uniquindio.meditrack.paciente.domain.Paciente;
 import co.edu.uniquindio.meditrack.paciente.domain.Sexo;
 import co.edu.uniquindio.meditrack.shared.domain.RecursoNoEncontradoException;
+import co.edu.uniquindio.meditrack.shared.domain.ValidacionDeNegocioException;
 import co.edu.uniquindio.meditrack.shared.infrastructure.web.ErrorResponseWriter;
 import co.edu.uniquindio.meditrack.shared.infrastructure.web.GlobalExceptionHandler;
 import co.edu.uniquindio.meditrack.usuario.application.port.JwtPort;
@@ -36,9 +37,12 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -131,6 +135,35 @@ class PacienteControllerTest {
                 .andExpect(jsonPath("$.codigo").value("VALIDACION"));
     }
 
+    @Test
+    @WithMockUser(username = "1", roles = "ADMINISTRADOR")
+    void desactivarConMotivoDevuelveElResidenteInactivo() throws Exception {
+        Paciente desactivado = new Paciente(10L, "1001", "Ana", "Gomez", LocalDate.of(1940, 1, 1), Sexo.FEMENINO,
+                "101", "Hipertension", LocalDate.of(2020, 1, 1), false, null, null);
+        when(cambiarEstado.ejecutar(10L, false, "Traslado a otro centro", 1L)).thenReturn(desactivado);
+        String cuerpo = "{\"activo\":false,\"motivo\":\"Traslado a otro centro\"}";
+
+        mockMvc.perform(patch("/api/pacientes/10/estado")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10))
+                .andExpect(jsonPath("$.activo").value(false));
+    }
+
+    @Test
+    @WithMockUser(username = "1", roles = "ADMINISTRADOR")
+    void desactivarSinMotivoDevuelve400() throws Exception {
+        when(cambiarEstado.ejecutar(anyLong(), anyBoolean(), any(), anyLong()))
+                .thenThrow(new ValidacionDeNegocioException("El motivo de la desactivacion es obligatorio"));
+        String cuerpo = "{\"activo\":false}";
+
+        mockMvc.perform(patch("/api/pacientes/10/estado")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("VALIDACION"));
+    }
     @Test
     @WithMockUser(username = "7", roles = "FAMILIAR_AUTORIZADO")
     void detalleFueraDeAlcanceDevuelve404() throws Exception {
