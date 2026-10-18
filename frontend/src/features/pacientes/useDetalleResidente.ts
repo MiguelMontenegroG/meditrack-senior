@@ -9,16 +9,19 @@ import { obtenerPaciente } from '@/features/pacientes/services/pacienteService'
 import { listarFamiliares } from '@/features/pacientes/services/familiarService'
 import { listarCuidadores } from '@/features/pacientes/services/cuidadorService'
 import { listarUsuariosPorRol } from '@/features/usuarios/services/usuarioService'
+import { listarEsquemas } from '@/features/medicacion/services/esquemaService'
 import type {
   AsignacionCuidador,
   PacienteDetalle,
   VinculacionFamiliar,
 } from '@/features/pacientes/types'
+import type { EsquemaMedicacion } from '@/features/medicacion/types'
 
 interface EstadoDetalle {
   paciente: PacienteDetalle | null
   familiares: VinculacionFamiliar[]
   cuidadores: AsignacionCuidador[]
+  esquemas: EsquemaMedicacion[]
   nombresPorUsuario: Record<number, string>
   cargando: boolean
   noEncontrado: boolean
@@ -31,6 +34,7 @@ export function useDetalleResidente(pacienteId: number, puedeGestionar: boolean)
   const [paciente, setPaciente] = useState<PacienteDetalle | null>(null)
   const [familiares, setFamiliares] = useState<VinculacionFamiliar[]>([])
   const [cuidadores, setCuidadores] = useState<AsignacionCuidador[]>([])
+  const [esquemas, setEsquemas] = useState<EsquemaMedicacion[]>([])
   const [nombresPorUsuario, setNombres] = useState<Record<number, string>>({})
   const [cargando, setCargando] = useState(true)
   const [noEncontrado, setNoEncontrado] = useState(false)
@@ -41,6 +45,8 @@ export function useDetalleResidente(pacienteId: number, puedeGestionar: boolean)
     try {
       const detalle = await obtenerPaciente(pacienteId)
       setPaciente(detalle)
+      const listaEsquemas = await listarEsquemas(pacienteId)
+      setEsquemas(listaEsquemas)
       if (puedeGestionar) {
         const [fam, cui] = await Promise.all([
           listarFamiliares(pacienteId),
@@ -73,5 +79,15 @@ export function useDetalleResidente(pacienteId: number, puedeGestionar: boolean)
     void recargar()
   }, [recargar])
 
-  return { paciente, familiares, cuidadores, nombresPorUsuario, cargando, noEncontrado, error, recargar }
+  return {
+    paciente,
+    familiares,
+    cuidadores,
+    esquemas,
+    nombresPorUsuario,
+    cargando,
+    noEncontrado,
+    error,
+    recargar,
+  }
 }

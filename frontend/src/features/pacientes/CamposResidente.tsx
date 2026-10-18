@@ -10,6 +10,9 @@ export interface ErroresResidente {
   apellidos?: string
   fechaNacimiento?: string
   sexo?: string
+  habitacion?: string
+  situacionClinica?: string
+  fechaIngreso?: string
 }
 
 interface PropsCamposResidente {
@@ -114,13 +117,38 @@ export function CamposResidente({ datos, errores, alCambiar }: PropsCamposReside
         )}
       </label>
       <label>
-        Habitación
+        Habitación (opcional)
         <input
           value={datos.habitacion ?? ''}
           onChange={(e) => alCambiar('habitacion', e.target.value)}
           autoComplete="off"
           maxLength={20}
+          placeholder="Déjala vacía en centros de día"
+          aria-invalid={Boolean(errores.habitacion)}
+          aria-describedby={errores.habitacion ? 'error-habitacion' : undefined}
         />
+        {errores.habitacion && (
+          <span className="campo-error" id="error-habitacion" role="alert">
+            {errores.habitacion}
+          </span>
+        )}
+      </label>
+      <label className="campo-ancho">
+        Situación clínica
+        <textarea
+          value={datos.situacionClinica ?? ''}
+          onChange={(e) => alCambiar('situacionClinica', e.target.value)}
+          rows={3}
+          maxLength={1000}
+          placeholder="Diagnósticos, condiciones y cuidados relevantes"
+          aria-invalid={Boolean(errores.situacionClinica)}
+          aria-describedby={errores.situacionClinica ? 'error-situacion-clinica' : undefined}
+        />
+        {errores.situacionClinica && (
+          <span className="campo-error" id="error-situacion-clinica" role="alert">
+            {errores.situacionClinica}
+          </span>
+        )}
       </label>
       <label>
         Fecha de ingreso
@@ -128,7 +156,14 @@ export function CamposResidente({ datos, errores, alCambiar }: PropsCamposReside
           type="date"
           value={datos.fechaIngreso ?? ''}
           onChange={(e) => alCambiar('fechaIngreso', e.target.value)}
+          aria-invalid={Boolean(errores.fechaIngreso)}
+          aria-describedby={errores.fechaIngreso ? 'error-fecha-ingreso' : undefined}
         />
+        {errores.fechaIngreso && (
+          <span className="campo-error" id="error-fecha-ingreso" role="alert">
+            {errores.fechaIngreso}
+          </span>
+        )}
       </label>
     </>
   )

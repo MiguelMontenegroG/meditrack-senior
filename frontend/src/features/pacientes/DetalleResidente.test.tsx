@@ -24,6 +24,9 @@ vi.mock('@/features/pacientes/services/cuidadorService', () => ({
 vi.mock('@/features/usuarios/services/usuarioService', () => ({
   listarUsuariosPorRol: vi.fn().mockResolvedValue([]),
 }))
+vi.mock('@/features/medicacion/services/esquemaService', () => ({
+  listarEsquemas: vi.fn().mockResolvedValue([]),
+}))
 vi.mock('@/features/auth/useAutenticacion', () => ({
   useAutenticacion: () => ({ usuario: { id: 1, rol: rolActual } }),
 }))

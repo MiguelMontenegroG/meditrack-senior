@@ -14,6 +14,7 @@ import { DatosResidente } from '@/features/pacientes/DatosResidente'
 import { SeccionContactos } from '@/features/pacientes/SeccionContactos'
 import { SeccionFamiliares } from '@/features/pacientes/SeccionFamiliares'
 import { SeccionCuidadores } from '@/features/pacientes/SeccionCuidadores'
+import { SeccionEsquemas } from '@/features/medicacion/SeccionEsquemas'
 
 /** Detalle del residente con contactos y gestion (ADMIN) de vinculos. */
 export function DetalleResidente() {
@@ -26,6 +27,7 @@ export function DetalleResidente() {
     paciente,
     familiares,
     cuidadores,
+    esquemas,
     nombresPorUsuario,
     cargando,
     noEncontrado,
@@ -74,6 +76,13 @@ export function DetalleResidente() {
       />
 
       <DatosResidente residente={paciente} />
+
+      <SeccionEsquemas
+            pacienteId={paciente.id}
+        esquemas={esquemas}
+        puedeGestionar={puedeGestionar}
+            alCambiar={recargar}
+          />
 
       <SeccionContactos
             pacienteId={paciente.id}
