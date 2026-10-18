@@ -1,67 +1,87 @@
-import { MoreHorizontal, Plus } from 'lucide-react'
+﻿import { useNavigate } from 'react-router-dom'
+import { Plus } from 'lucide-react'
 import { BotonAccion } from '@/components/ui/BotonAccion'
-import { EtiquetaEstado } from '@/components/ui/EtiquetaEstado'
-import { residentesAtencion } from '@/features/dashboard/mock-data'
+import { EnConstruccion } from '@/components/ui/EnConstruccion'
+import { useResumenOperativo } from '@/features/dashboard/useResumenOperativo'
 
-// Subpanel con la tabla de residentes que requieren atencion hoy.
+// Subpanel con los residentes que tienen tomas abiertas hoy. Antes mostraba
+// una tabla fija con residentes inventados; ahora lista las dosis reales
+// pendientes o atrasadas del dia (agenda del backend). El boton de alta lleva
+// al formulario real en lugar de no hacer nada.
 
-/** Tabla de residentes priorizados por alertas y tareas pendientes. */
+/** Residentes con tomas pendientes o atrasadas hoy. */
 export function TablaResidentes() {
+  const navegar = useNavigate()
+  const { tomasAbiertas, cargando } = useResumenOperativo()
+
+  // Una fila por residente, con cuantas tomas abiertas tiene hoy.
+  const porResidente = new Map<number, { nombre: string; abiertas: number; atrasadas: number }>()
+  for (const toma of tomasAbiertas) {
+    const actual = porResidente.get(toma.pacienteId) ?? {
+      nombre: toma.pacienteNombre,
+      abiertas: 0,
+      atrasadas: 0,
+    }
+    actual.abiertas += 1
+    if (toma.estado === 'ATRASADA') actual.atrasadas += 1
+    porResidente.set(toma.pacienteId, actual)
+  }
+
   return (
     <section className="panel residents-table">
       <div className="panel-header">
         <div>
-          <h3>Residentes que requieren atencion hoy</h3>
-          <p className="muted">Priorizados por alertas y tareas pendientes</p>
+          <h3>Residentes con tomas abiertas hoy</h3>
+          <p className="muted">Con dosis pendientes o atrasadas del dia</p>
         </div>
-        <BotonAccion variant="outline" className="desktop-only">
+        <BotonAccion
+          variant="outline"
+          className="desktop-only"
+          onClick={() => navegar('/residentes/nuevo')}
+        >
           <Plus size={16} /> Registrar residente
         </BotonAccion>
       </div>
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Residente</th>
-              <th>Habitacion</th>
-              <th>Situacion</th>
-              <th>Estado</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {residentesAtencion.map((residente) => (
-              <tr key={residente.nombre}>
-                <td>
-                  <div className="resident-cell">
-                    <span className="avatar avatar-soft">
-                      {residente.nombre
-                        .split(' ')
-                        .map((parte) => parte[0])
-                        .slice(0, 2)
-                        .join('')}
-                    </span>
-                    <span>
-                      <strong>{residente.nombre}</strong>
-                      <small>{residente.edad}</small>
-                    </span>
-                  </div>
-                </td>
-                <td>{residente.habitacion}</td>
-                <td>{residente.situacion}</td>
-                <td>
-                  <EtiquetaEstado tono={residente.tono}>{residente.estado}</EtiquetaEstado>
-                </td>
-                <td>
-                  <button className="row-action" aria-label={`Opciones de ${residente.nombre}`}>
-                    <MoreHorizontal size={18} />
-                  </button>
-                </td>
+
+      {cargando && (
+        <p className="muted panel-vacio">Cargando residentes con tomas abiertas...</p>
+      )}
+
+      {!cargando && porResidente.size === 0 && <EnConstruccion titulo="Sin tomas abiertas" />}
+
+      {!cargando && porResidente.size > 0 && (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Residente</th>
+                <th>Tomas abiertas</th>
+                <th>Atrasadas</th>
+                <th></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {[...porResidente.entries()].map(([pacienteId, datos]) => (
+                <tr key={pacienteId}>
+                  <td>
+                    <strong>{datos.nombre}</strong>
+                  </td>
+                  <td>{datos.abiertas}</td>
+                  <td>{datos.atrasadas}</td>
+                  <td>
+                    <BotonAccion
+                      variant="outline"
+                      onClick={() => navegar(`/residentes/${pacienteId}/tomas`)}
+                    >
+                      Ver agenda
+                    </BotonAccion>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </section>
   )
 }

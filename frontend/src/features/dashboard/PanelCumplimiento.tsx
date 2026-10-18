@@ -1,41 +1,72 @@
-import { MoreHorizontal } from 'lucide-react'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { datosCumplimiento } from '@/features/dashboard/mock-data'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import type { PuntoCumplimiento } from '@/features/dashboard/types'
 
-// Subpanel del grafico de barras con el cumplimiento de los ultimos 7 dias.
+// Subpanel del grafico de barras con las tomas programadas. El backend no
+// expone un historico en lote; la unica medida real disponible es la agenda de
+// hoy, por lo que el subtitulo lo advierte en lugar de simular una tendencia.
 
-/** Grafico de cumplimiento diario (citas vs bitacoras). */
-export function PanelCumplimiento() {
+interface PropsPanelCumplimiento {
+  serie: PuntoCumplimiento[]
+  cargando: boolean
+}
+
+/** Grafico de tomas programadas por dia (real solo para hoy). */
+export function PanelCumplimiento({ serie, cargando }: PropsPanelCumplimiento) {
+  const totalHoy = serie.find((punto) => punto.dia === 'Hoy')?.tomas ?? 0
+
   return (
     <section className="panel chart-panel">
       <div className="panel-header">
         <div>
-          <h3>Cumplimiento por dia</h3>
-          <p className="muted">Ultimos 7 dias</p>
+          <h3>Tomas programadas</h3>
+          <p className="muted">
+            {cargando
+              ? 'Calculando agenda de hoy...'
+              : `Hoy: ${totalHoy} ${totalHoy === 1 ? 'toma' : 'tomas'} en residentes activos. El historico por dia aun no tiene endpoint.`}
+          </p>
         </div>
-        <button className="icon-button" aria-label="Mas opciones">
-          <MoreHorizontal size={19} />
-        </button>
       </div>
       <div className="legend">
         <span>
           <i className="dot teal" />
-          Citas
-        </span>
-        <span>
-          <i className="dot gold" />
-          Bitacoras
+          Tomas programadas
         </span>
       </div>
       <div className="main-chart">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={datosCumplimiento} barGap={5}>
+          <BarChart data={serie} barGap={5}>
             <CartesianGrid vertical={false} stroke="#ebe7df" />
-            <XAxis dataKey="dia" axisLine={false} tickLine={false} tick={{ fill: '#718084', fontSize: 12 }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#718084', fontSize: 12 }} width={25} />
-            <Tooltip cursor={{ fill: '#f5f2ec' }} contentStyle={{ border: '1px solid #ddd7cb', borderRadius: 6, boxShadow: 'none' }} />
-            <Bar dataKey="citas" fill="#0e5a64" radius={[3, 3, 0, 0]} barSize={9} />
-            <Bar dataKey="bitacoras" fill="#e9b872" radius={[3, 3, 0, 0]} barSize={9} />
+            <XAxis
+              dataKey="dia"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#718084', fontSize: 12 }}
+            />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: '#718084', fontSize: 12 }}
+              width={25}
+              allowDecimals={false}
+            />
+            <Tooltip
+              cursor={{ fill: '#f5f2ec' }}
+              contentStyle={{
+                border: '1px solid #ddd7cb',
+                borderRadius: 6,
+                boxShadow: 'none',
+              }}
+              formatter={(valor) => [`${valor}`, 'Tomas programadas']}
+            />
+            <Bar dataKey="tomas" fill="#0e5a64" radius={[3, 3, 0, 0]} barSize={14} />
           </BarChart>
         </ResponsiveContainer>
       </div>

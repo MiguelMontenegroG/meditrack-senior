@@ -1,4 +1,4 @@
-import { Bell, CalendarDays, ClipboardList, FileBarChart, LayoutDashboard, MoreHorizontal, Settings2, ShieldCheck, Users } from 'lucide-react'
+﻿import { Bell, CalendarDays, ClipboardList, FileBarChart, LayoutDashboard, MoreHorizontal, Pill, Settings2, ShieldCheck, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { MarcaMediTrack } from '@/components/layout/MarcaMediTrack'
@@ -7,19 +7,20 @@ import type { RolUsuario } from '@/features/auth/types'
 
 // Barra lateral de escritorio. Muestra "Residentes" a los tres roles; las
 // secciones de administracion (Panel, Calendario, etc.) solo al ADMINISTRADOR.
+
 interface ElementoNavegacion {
   etiqueta: string
   ruta: string
   icono: LucideIcon
-  contador?: number
 }
 
 const NAVEGACION_ADMIN: ElementoNavegacion[] = [
   { etiqueta: 'Panel', ruta: '/dashboard', icono: LayoutDashboard },
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
+  { etiqueta: 'Medicamentos', ruta: '/medicamentos', icono: Pill },
   { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
   { etiqueta: 'Bitacora', ruta: '/bitacora', icono: ClipboardList },
-  { etiqueta: 'Alertas', ruta: '/alertas', icono: Bell, contador: 4 },
+  { etiqueta: 'Alertas', ruta: '/alertas', icono: Bell },
   { etiqueta: 'Reportes', ruta: '/reportes', icono: FileBarChart },
   { etiqueta: 'Usuarios', ruta: '/usuarios', icono: ShieldCheck },
 ]
@@ -27,6 +28,7 @@ const NAVEGACION_ADMIN: ElementoNavegacion[] = [
 const NAVEGACION_CUIDADOR: ElementoNavegacion[] = [
   { etiqueta: 'Hoy', ruta: '/cuidador', icono: LayoutDashboard },
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
+  { etiqueta: 'Medicamentos', ruta: '/medicamentos', icono: Pill },
 ]
 
 const NAVEGACION_FAMILIAR: ElementoNavegacion[] = [
@@ -37,6 +39,24 @@ const NAVEGACION_POR_ROL: Record<RolUsuario, ElementoNavegacion[]> = {
   ADMINISTRADOR: NAVEGACION_ADMIN,
   CUIDADOR_ENFERMERO: NAVEGACION_CUIDADOR,
   FAMILIAR_AUTORIZADO: NAVEGACION_FAMILIAR,
+}
+
+/** Etiqueta legible del rol para la tarjeta de usuario. */
+const NOMBRE_ROL: Record<RolUsuario, string> = {
+  ADMINISTRADOR: 'Administrador',
+  CUIDADOR_ENFERMERO: 'Cuidador enfermero',
+  FAMILIAR_AUTORIZADO: 'Familiar autorizado',
+}
+
+/** Iniciales para el avatar a partir del nombre completo. */
+function iniciales(nombreCompleto: string | undefined): string {
+  if (!nombreCompleto) return '--'
+  return nombreCompleto
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((parte) => parte[0]?.toUpperCase() ?? '')
+    .join('')
 }
 
 /** Navegacion principal en escritorio. */
@@ -62,7 +82,6 @@ export function BarraLateral() {
             >
               <Icono size={19} />
               <span>{item.etiqueta}</span>
-              {item.contador ? <b>{item.contador}</b> : null}
             </NavLink>
           )
         })}
@@ -73,10 +92,10 @@ export function BarraLateral() {
           <span>Configuracion</span>
         </NavLink>
         <div className="side-user">
-          <span className="avatar avatar-gold">ML</span>
+          <span className="avatar avatar-gold">{iniciales(usuario?.nombreCompleto)}</span>
           <span>
-            <strong>Mariana Lopez</strong>
-            <small>Administradora</small>
+            <strong>{usuario?.nombreCompleto ?? 'Sin sesion'}</strong>
+            <small>{usuario ? NOMBRE_ROL[usuario.rol] : '--'}</small>
           </span>
           <MoreHorizontal size={18} />
         </div>

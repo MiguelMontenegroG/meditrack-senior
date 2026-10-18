@@ -1,18 +1,11 @@
-import type { TonoEstado } from '@/components/ui/EtiquetaEstado'
+﻿// Types del panel de administrador. Todos los datos que muestra el panel salen
+// de endpoints reales (residentes, medicamentos y agenda de tomas); lo que
+// depende de modulos inexistentes se presenta como estado "en construccion".
 
-// Types del panel de administrador. Los datos de ejemplo viven en mock-data.ts
-// y se reemplazaran por datos del backend en el Paso 3.
-
-/** Punto de la serie de cumplimiento diario (citas y bitacoras). */
+/** Punto de la serie del grafico del panel (tomas programadas por dia). */
 export interface PuntoCumplimiento {
   dia: string
-  citas: number
-  bitacoras: number
-}
-
-/** Punto de la mini grafica de tendencia de un KPI. */
-export interface PuntoMiniGrafico {
-  valor: number
+  tomas: number
 }
 
 /** Indicador clave mostrado en la cuadricula superior. */
@@ -20,25 +13,24 @@ export interface IndicadorKpiDatos {
   etiqueta: string
   valor: string
   detalle: string
+  /** Variacion respecto al periodo anterior; vacia si no hay serie real. */
   tendencia: string
   tono: 'primary' | 'warm' | 'blue' | 'green'
+  /** Serie para la mini grafica; vacia = no se dibuja tendencia. */
+  serie: number[]
 }
 
-/** Alerta activa que requiere seguimiento del equipo. */
-export interface AlertaActiva {
-  tipo: string
-  residente: string
-  momento: string
-  severidad: string
-  tono: TonoEstado
-}
-
-/** Fila de residente que requiere atencion hoy. */
-export interface ResidenteAtencion {
-  nombre: string
-  edad: string
-  habitacion: string
-  situacion: string
-  tono: TonoEstado
-  estado: string
+/**
+ * Datos reales con los que se calcula el resumen del panel. Provienen de
+ * GET /pacientes (activos) y de la agenda de tomas del dia de cada residente.
+ */
+export interface DatosResumenOperativo {
+  /** Residentes activos cuyo resumen se agrego. */
+  residentes: number
+  /** Total de esquemas de medicacion vigentes hoy. */
+  esquemas: number
+  /** Tomadas mas omitidas (registros ya diligenciados). */
+  tomasCerradas: number
+  /** Total de tomas programadas para hoy en los residentes activos. */
+  tomasTotales: number
 }
