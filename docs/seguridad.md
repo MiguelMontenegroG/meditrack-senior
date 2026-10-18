@@ -157,7 +157,10 @@ Eventos auditados actualmente:
 - `CREATE`/`UPDATE` de pacientes (alta, actualizacion y activacion/desactivacion),
 - `CREATE`/`UPDATE`/`DELETE` de contactos de emergencia, vinculaciones de
   familiares y asignaciones de cuidadores,
-- `READ` de pacientes y contactos (exitoso y denegado).
+- `READ` de pacientes y contactos (exitoso y denegado),
+- `CREATE`/`UPDATE` de medicamentos y esquemas,
+- `CREATE` de tomas y `READ` de esquemas, agenda e historial (exitoso y denegado),
+- `CREATE`/`UPDATE` de citas y `READ` de citas (detalle y calendario; exitoso y denegado).
 
 El campo `detalle` nunca contiene contrasenas, tokens ni datos personales: solo
 describe la operacion realizada.
@@ -234,3 +237,61 @@ Reglas aplicadas:
 
 Eventos auditados del modulo: `CREATE`/`UPDATE` de medicamentos y esquemas,
 `CREATE` de tomas y `READ` de esquemas, agenda e historial (EXITOSO y DENEGADO).
+## 15. Alcance sobre las citas (modulo cita)
+
+El modulo de citas reutiliza el alcance del modulo paciente a traves del mismo
+`VerificadorAlcanceResidente` y `PacienteAlcancePort` del modulo medicacion (no
+duplica la regla de visibilidad ni accede a las tablas del modulo paciente de
+forma directa). Antes de operar sobre un residente se resuelve su visibilidad con
+`VerificadorAlcanceResidente`:
+
+- `ADMINISTRADOR`: agenda, edita, cancela y marca estado de citas de cualquier
+  residente existente; ve todo el calendario.
+- `CUIDADOR_ENFERMERO`: lectura de citas y marcado de `CUMPLIDA`/`INCUMPLIDA`
+  solo de residentes con **asignacion vigente**. No agenda, no edita ni cancela.
+- `FAMILIAR_AUTORIZADO`: solo lectura de citas de residentes con **vinculacion
+  autorizada**. Nunca escribe ni marca estado.
+
+Endpoints (todos requieren JWT valido):
+
+- `GET /api/citas?desde&hasta[&estado][&pacienteId][&pagina][&tamano]`: calendario
+  por rango de fechas, paginado (tamano acotado a 100) y filtrable opcionalmente por
+  residente; los tres roles (lectura segun alcance). Un residente fuera de alcance o
+  inexistente en el filtro `pacienteId` devuelve una pagina vacia (total 0), sin
+  revelar su existencia.
+- `GET /api/pacientes/{pacienteId}/citas/{citaId}`: detalle (los tres roles).
+- `POST /api/pacientes/{pacienteId}/citas`: agendar (solo `ADMINISTRADOR`).
+- `PUT /api/pacientes/{pacienteId}/citas/{citaId}`: editar (solo `ADMINISTRADOR`).
+- `PATCH /api/pacientes/{pacienteId}/citas/{citaId}/estado`: cambiar estado
+  (`ADMINISTRADOR` o `CUIDADOR_ENFERMERO`; `CANCELADA` solo `ADMINISTRADOR`).
+- `GET /api/especialidades`: catalogo (solo lectura, los tres roles).
+
+Reglas aplicadas:
+
+- El residente inexistente o fuera de alcance responde **404** (nunca 403) y se
+  audita como `READ` **DENEGADO**; un residente inactivo responde **409** en las
+  operaciones de escritura (agendar, editar, cambiar estado).
+- La fecha/hora de la cita no puede estar en el pasado al agendar o editar
+  (**400**).
+- Solo se edita, cancela o cambia de estado una cita en estado inicial
+  (`PROGRAMADA`); el resto responde **409**.
+- `CUMPLIDA`/`INCUMPLIDA` solo se marcan sobre citas cuya fecha/hora ya llego
+  (**400** si es futura). `CANCELADA` es exclusiva del administrador (**403** para
+  el resto). Registrar `PROGRAMADA` o `REPROGRAMADA` como destino responde
+  **400**: la reprogramacion no es una operacion del producto.
+- Si se indica una especialidad, debe existir en el catalogo (**404** en caso
+  contrario). El catalogo (`catalogo_especialidad`) no tiene columna de estado:
+  no existe el concepto de "especialidad activa".
+- El autor de la cita (`registradaPor`) sale siempre del usuario autenticado,
+  nunca del cuerpo de la peticion.
+- El calendario exige `desde <= hasta` y filtra por el conjunto de residentes
+  visibles resuelto con las consultas de alcance del modulo paciente; nunca se
+  expone una cita de un residente fuera de alcance.
+- Los filtros opcionales (estado y rango de fechas) se resuelven con metodos de
+  repositorio separados por combinacion, para no enviar parametros nulos a
+  PostgreSQL (misma tecnica que en paciente y medicacion).
+
+Eventos auditados del modulo: `CREATE` de citas, `UPDATE` de citas (edicion y
+cambio de estado) y `READ` de citas (detalle y calendario); el intento sobre un
+residente fuera de alcance se audita como `READ` **DENEGADO** (via
+`VerificadorAlcanceResidente`).

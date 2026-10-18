@@ -32,6 +32,10 @@ tags:
     description: Tratamientos de un residente con dosis, frecuencia, via y vigencia, con sus horarios
   - name: Tomas
     description: Agenda del dia, historial y registro de tomas (pendiente/atrasado calculados, nunca persistidos)
+  - name: Especialidades
+    description: Catalogo de especialidades medicas (solo lectura, los tres roles)
+  - name: Citas
+    description: Calendario de citas medicas por rango, agendamiento, edicion y cambio de estado (lectura segun alcance)
 
 paths:
   /api/auth/login:
@@ -299,9 +303,7 @@ paths:
           description: Estado actualizado
         '400':
           description: >-
-            VALIDACION - se desactivo sin motivo, el motivo supera 200 caracteres,
-            el residente a activar no tiene situacion clinica o la fecha de
-            ingreso es futura.
+            VALIDACION - se desactivo sin motivo o el motivo supera 200 caracteres.
           content:
             application/json:
               schema:
@@ -985,9 +987,7 @@ paths:
           description: Estado actualizado
         '400':
           description: >-
-            VALIDACION - se desactivo sin motivo, el motivo supera 200 caracteres,
-            el residente a activar no tiene situacion clinica o la fecha de
-            ingreso es futura.
+            VALIDACION - se desactivo sin motivo o el motivo supera 200 caracteres.
           content:
             application/json:
               schema:
@@ -1177,9 +1177,9 @@ paths:
           description: Estado actualizado
         '400':
           description: >-
-            VALIDACION - se desactivo sin motivo, el motivo supera 200 caracteres,
-            el residente a activar no tiene situacion clinica o la fecha de
-            ingreso es futura.
+            VALIDACION - se desactivo sin motivo, el motivo supera 200 caracteres o
+            falta el motivo de la activacion, o se intento activar un esquema de un
+            residente inactivo.
           content:
             application/json:
               schema:
@@ -1336,6 +1336,308 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiError'
+  /api/especialidades:
+    get:
+      tags: [Especialidades]
+      summary: Listar el catalogo de especialidades medicas (los tres roles)
+      responses:
+        '200':
+          description: Lista de especialidades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Especialidad'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/citas:
+    get:
+      tags: [Citas]
+      summary: Calendario de citas por rango de fechas, segun el alcance del usuario
+      description: >-
+        Los tres roles pueden leer, pero solo se devuelven citas de residentes
+        dentro del alcance del usuario (ADMINISTRADOR ve todas; CUIDADOR_ENFERMERO
+        solo residentes con asignacion vigente; FAMILIAR_AUTORIZADO solo residentes
+        con vinculacion autorizada). Exige desde <= hasta. Cada elemento es la vista
+        completa de la cita (incluye motivo).
+      parameters:
+        - name: desde
+          in: query
+          required: true
+          description: Inicio del rango (incluido), en ISO-8601 UTC
+          schema:
+            type: string
+            format: date-time
+        - name: hasta
+          in: query
+          required: true
+          description: Fin del rango (incluido), en ISO-8601 UTC
+          schema:
+            type: string
+            format: date-time
+        - name: estado
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/EstadoCita'
+        - name: pacienteId
+          in: query
+          required: false
+          description: >-
+            Filtra el calendario a un residente concreto. Si el residente no
+            existe o esta fuera del alcance, se responde una pagina vacia
+            (total 0) sin revelar su existencia.
+          schema:
+            type: integer
+            format: int64
+        - name: pagina
+          in: query
+          required: false
+          description: Numero de pagina (base 0)
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: tamano
+          in: query
+          required: false
+          description: Tamano de pagina (1-100; por encima de 100 se acota a 100)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Pagina de citas del rango dentro del alcance (detalle de cada cita)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaCitas'
+        '400':
+          description: >-
+            VALIDACION - falta desde o hasta, o la fecha desde es posterior a hasta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/pacientes/{pacienteId}/citas:
+    post:
+      tags: [Citas]
+      summary: Agendar una cita de un residente (solo ADMINISTRADOR)
+      description: >-
+        El autor de la cita (registradaPor) se toma del usuario autenticado,
+        nunca del cuerpo de la peticion. La cita nace en estado PROGRAMADA. Si se
+        indica especialidadId, la especialidad debe existir.
+      parameters:
+        - $ref: '#/components/parameters/PacienteId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CitaRequest'
+      responses:
+        '201':
+          description: Cita agendada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CitaDetalle'
+        '400':
+          description: >-
+            VALIDACION - datos invalidos o la fecha y hora de la cita esta en el
+            pasado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: El usuario autenticado no es ADMINISTRADOR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: La especialidad no existe, o el residente no existe o esta fuera del alcance del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: El residente esta inactivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/pacientes/{pacienteId}/citas/{citaId}:
+    get:
+      tags: [Citas]
+      summary: Detalle de una cita de un residente (lectura segun alcance)
+      description: >-
+        La respuesta incluye el motivo de la cita, solo dentro del alcance del
+        usuario.
+      parameters:
+        - $ref: '#/components/parameters/PacienteId'
+        - $ref: '#/components/parameters/CitaId'
+      responses:
+        '200':
+          description: Cita encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CitaDetalle'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: El residente esta fuera de alcance o la cita no existe para ese residente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    put:
+      tags: [Citas]
+      summary: Editar una cita en estado inicial (solo ADMINISTRADOR)
+      description: >-
+        Solo se edita una cita en estado PROGRAMADA. La fecha y hora no puede
+        estar en el pasado. Si se indica especialidadId, debe existir. El autor
+        (registradaPor) no se puede modificar desde la peticion.
+      parameters:
+        - $ref: '#/components/parameters/PacienteId'
+        - $ref: '#/components/parameters/CitaId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CitaRequest'
+      responses:
+        '200':
+          description: Cita actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CitaDetalle'
+        '400':
+          description: >-
+            VALIDACION - datos invalidos o la fecha y hora de la cita esta en el
+            pasado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: El usuario autenticado no es ADMINISTRADOR
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: La especialidad no existe, o el residente esta fuera de alcance o la cita no existe para ese residente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: La cita ya no esta en estado inicial (PROGRAMADA) o el residente esta inactivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/pacientes/{pacienteId}/citas/{citaId}/estado:
+    patch:
+      tags: [Citas]
+      summary: Cambiar el estado de una cita (ADMINISTRADOR o CUIDADOR_ENFERMERO)
+      description: >-
+        Destinos validos: CUMPLIDA e INCUMPLIDA (ADMINISTRADOR o
+        CUIDADOR_ENFERMERO, solo si la fecha y hora de la cita ya llego) y
+        CANCELADA (solo ADMINISTRADOR). Solo se cambia desde el estado inicial
+        PROGRAMADA. Registrar PROGRAMADA o REPROGRAMADA como destino no es una
+        operacion del producto y responde 400. El FAMILIAR_AUTORIZADO nunca marca
+        estado.
+      parameters:
+        - $ref: '#/components/parameters/PacienteId'
+        - $ref: '#/components/parameters/CitaId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CambiarEstadoCitaRequest'
+      responses:
+        '200':
+          description: Estado actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CitaDetalle'
+        '400':
+          description: >-
+            VALIDACION - estado nulo, destino no permitido (PROGRAMADA o
+            REPROGRAMADA) o la fecha y hora de la cita aun no ha llegado para
+            marcar CUMPLIDA/INCUMPLIDA.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: >-
+            El usuario no puede marcar estado (familiar) o intenta cancelar sin
+            ser ADMINISTRADOR.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: El residente esta fuera de alcance o la cita no existe para ese residente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: La cita ya no esta en estado inicial (PROGRAMADA) o el residente esta inactivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1367,6 +1669,13 @@ components:
         format: int64
     EsquemaId:
       name: esquemaId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    CitaId:
+      name: citaId
       in: path
       required: true
       schema:
@@ -1945,6 +2254,131 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SlotToma'
+    EstadoCita:
+      type: string
+      description: >-
+        Estados persistidos de una cita. PROGRAMADA es el estado inicial;
+        CUMPLIDA, INCUMPLIDA y CANCELADA son finales. REPROGRAMADA existe en el
+        esquema pero la reprogramacion no es una operacion del producto: no es un
+        destino valido al cambiar estado (responde 400).
+      enum: [PROGRAMADA, CUMPLIDA, INCUMPLIDA, CANCELADA, REPROGRAMADA]
+
+    DestinoEstadoCita:
+      type: string
+      description: >-
+        Valores admitidos en PATCH .../estado. CUMPLIDA e INCUMPLIDA las marcan
+        ADMINISTRADOR y CUIDADOR_ENFERMERO (solo si la fecha y hora ya llego);
+        CANCELADA solo el ADMINISTRADOR. PROGRAMADA y REPROGRAMADA no son destinos
+        validos.
+      enum: [CUMPLIDA, INCUMPLIDA, CANCELADA]
+
+    Especialidad:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        nombre:
+          type: string
+
+    CitaRequest:
+      type: object
+      description: >-
+        Cuerpo para agendar o editar una cita. No incluye registradaPor (sale del
+        usuario autenticado) ni estado (lo gestiona el dominio).
+      properties:
+        especialidadId:
+          type: integer
+          format: int64
+          nullable: true
+          description: Opcional; si se envia debe existir en el catalogo de especialidades.
+        profesional:
+          type: string
+          maxLength: 150
+          nullable: true
+        fechaHora:
+          type: string
+          format: date-time
+          description: >-
+            Fecha y hora de la cita en ISO-8601. El backend la recibe como Instant
+            (se acepta el sufijo Z o un offset, p. ej. 2026-01-20T09:00:00-05:00).
+        lugar:
+          type: string
+          maxLength: 150
+          nullable: true
+        motivo:
+          type: string
+          nullable: true
+
+    CambiarEstadoCitaRequest:
+      type: object
+      required: [estado]
+      properties:
+        estado:
+          $ref: '#/components/schemas/DestinoEstadoCita'
+
+    CitaResumen:
+      type: object
+      description: >-
+        Campos comunes de una cita (sin motivo). Es la base de CitaDetalle, que
+        agrega el motivo de la cita.
+      properties:
+        id:
+          type: integer
+          format: int64
+        pacienteId:
+          type: integer
+          format: int64
+        especialidadId:
+          type: integer
+          format: int64
+          nullable: true
+        especialidadNombre:
+          type: string
+          nullable: true
+        registradaPor:
+          type: integer
+          format: int64
+        profesional:
+          type: string
+          nullable: true
+        fechaHora:
+          type: string
+          format: date-time
+        lugar:
+          type: string
+          nullable: true
+        estado:
+          $ref: '#/components/schemas/EstadoCita'
+
+    CitaDetalle:
+      allOf:
+        - $ref: '#/components/schemas/CitaResumen'
+        - type: object
+          description: Detalle de una cita; agrega el motivo (segun alcance).
+          properties:
+            motivo:
+              type: string
+              nullable: true
+
+    PaginaCitas:
+      type: object
+      description: Pagina del calendario de citas (contenido y total por el mismo filtro).
+      properties:
+        contenido:
+          type: array
+          items:
+            $ref: '#/components/schemas/CitaDetalle'
+        pagina:
+          type: integer
+        tamano:
+          type: integer
+        total:
+          type: integer
+          format: int64
+        totalPaginas:
+          type: integer
+
     ApiError:
       type: object
       properties:
