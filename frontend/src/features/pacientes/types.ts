@@ -55,6 +55,13 @@ export interface DatosPaciente {
   fechaIngreso?: string | null
 }
 
+/** Cuerpo de PATCH /api/pacientes/{id}/estado (activar o desactivar). */
+export interface CambioEstadoPaciente {
+  activo: boolean
+  /** Obligatorio al desactivar (maximo 200 caracteres); se ignora al activar. */
+  motivo?: string | null
+}
+
 /** Cuerpo para crear o actualizar un contacto de emergencia. */
 export interface DatosContacto {
   nombre: string

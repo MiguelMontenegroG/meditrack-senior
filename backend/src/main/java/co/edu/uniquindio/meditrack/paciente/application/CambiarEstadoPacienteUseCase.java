@@ -10,7 +10,9 @@ import co.edu.uniquindio.meditrack.shared.domain.RecursoNoEncontradoException;
 /**
  * Caso de uso: activar o desactivar un paciente (solo administrador).
  *
- * <p>Nunca se borra fisicamente: el borrado es logico con {@code activo}.</p>
+ * <p>Nunca se borra fisicamente: el borrado es logico con {@code activo}. La
+ * desactivacion exige un motivo, que queda registrado en la auditoria; la
+ * activacion exige que el perfil clinico este completo (regla del dominio).</p>
  */
 public class CambiarEstadoPacienteUseCase {
 
@@ -22,17 +24,31 @@ public class CambiarEstadoPacienteUseCase {
         this.auditoria = auditoria;
     }
 
-    public Paciente ejecutar(Long pacienteId, boolean activar, Long autorId) {
+    /**
+     * @param pacienteId residente a modificar
+     * @param activar    {@code true} activa, {@code false} desactiva
+     * @param motivo     obligatorio al desactivar; se ignora al activar
+     * @param autorId    administrador que realiza el cambio (auditoria)
+     */
+    public Paciente ejecutar(Long pacienteId, boolean activar, String motivo, Long autorId) {
         Paciente paciente = pacientes.buscarPorId(pacienteId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Paciente no encontrado"));
 
         if (activar) {
             paciente.activar();
         } else {
-            paciente.desactivar();
+            // El dominio rechaza un motivo vacio (400 VALIDACION); aqui solo se
+            // normaliza para no guardar espacios sobrantes en la auditoria ni
+            // romper con una referencia nula.
+            motivo = motivo != null ? motivo.trim() : "";
+            paciente.desactivar(motivo);
         }
 
         Paciente persistido = pacientes.guardar(paciente);
+
+        String detalle = activar
+                ? "Activacion de paciente"
+                : "Desactivacion de paciente. Motivo: " + motivo;
 
         auditoria.registrar(
                 autorId,
@@ -40,7 +56,7 @@ public class CambiarEstadoPacienteUseCase {
                 "paciente",
                 persistido.getId(),
                 ResultadoAuditoria.EXITOSO,
-                activar ? "Activacion de paciente" : "Desactivacion de paciente");
+                detalle);
 
         return persistido;
     }

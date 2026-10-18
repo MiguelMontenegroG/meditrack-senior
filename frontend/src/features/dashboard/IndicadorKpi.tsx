@@ -2,7 +2,7 @@ import { ArrowUpRight, ClipboardCheck, Clock3, FileBarChart, HeartPulse } from '
 import { MiniGrafico } from '@/features/dashboard/MiniGrafico'
 import type { IndicadorKpiDatos } from '@/features/dashboard/types'
 
-// Tarjeta de indicador clave (KPI) con icono, valor, tendencia y mini grafica.
+// Tarjeta de indicador clave (KPI) con icono, valor, detalle y mini grafica.
 
 const ICONOS_KPI = {
   primary: HeartPulse,
@@ -19,7 +19,14 @@ const COLORES_LINEA: Record<IndicadorKpiDatos['tono'], string> = {
 }
 
 /** Tarjeta de KPI del panel de administrador. */
-export function IndicadorKpi({ etiqueta, valor, detalle, tendencia, tono = 'primary' }: IndicadorKpiDatos) {
+export function IndicadorKpi({
+  etiqueta,
+  valor,
+  detalle,
+  tendencia,
+  tono = 'primary',
+  serie,
+}: IndicadorKpiDatos) {
   const Icono = ICONOS_KPI[tono]
   return (
     <section className="kpi-card">
@@ -31,13 +38,17 @@ export function IndicadorKpi({ etiqueta, valor, detalle, tendencia, tono = 'prim
       </div>
       <strong>{valor}</strong>
       <div className="kpi-bottom">
-        <span className="trend">
-          <ArrowUpRight size={13} />
-          {tendencia}
-        </span>
+        {tendencia && (
+          <span className="trend">
+            <ArrowUpRight size={13} />
+            {tendencia}
+          </span>
+        )}
         <span>{detalle}</span>
       </div>
-      <MiniGrafico color={COLORES_LINEA[tono]} />
+      {/* Solo se dibuja la mini grafica si hay una serie real: sin datos no
+          se inventa una tendencia. */}
+      {serie.length > 1 && <MiniGrafico color={COLORES_LINEA[tono]} valores={serie} />}
     </section>
   )
 }

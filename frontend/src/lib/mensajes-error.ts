@@ -41,7 +41,17 @@ export function mensajeDeError(codigo: string | undefined): string {
 }
 
 /** Contextos de negocio que afinan el mensaje generico de un codigo. */
-export type ContextoError = 'documento-duplicado' | 'correo-duplicado' | 'usuario-propio'
+export type ContextoError =
+  | 'documento-duplicado'
+  | 'correo-duplicado'
+  | 'usuario-propio'
+  | 'medicamento-duplicado'
+  | 'esquema-solapado'
+  | 'residente-inactivo'
+  | 'toma-duplicada'
+  | 'toma-cerrada'
+  | 'perfil-clinico-incompleto'
+  | 'motivo-obligatorio'
 
 const MENSAJES_CONTEXTO: Record<ContextoError, Partial<Record<CodigoError, string>>> = {
   // El backend responde 409 CONFLICTO cuando el documento ya existe.
@@ -57,6 +67,38 @@ const MENSAJES_CONTEXTO: Record<ContextoError, Partial<Record<CodigoError, strin
   // propio rol o desactivar su propia cuenta.
   'usuario-propio': {
     CONFLICTO: 'No puedes cambiar tu propio rol ni desactivar tu cuenta.',
+  },
+  // El backend responde 409 CONFLICTO si ya existe un medicamento con ese
+  // nombre (comparacion sin distinguir mayusculas).
+  'medicamento-duplicado': {
+    CONFLICTO: 'Ya existe un medicamento con ese nombre.',
+  },
+  // El backend responde 409 CONFLICTO si ya hay un esquema activo del mismo
+  // medicamento con vigencia solapada.
+  'esquema-solapado': {
+    CONFLICTO: 'Ya existe un esquema activo de ese medicamento con fechas que se solapan.',
+  },
+  // El backend responde 409 CONFLICTO si el residente o el medicamento estan
+  // inactivos al crear un esquema.
+  'residente-inactivo': {
+    CONFLICTO: 'No se puede crear el esquema: el residente o el medicamento estan inactivos.',
+  },
+  // El backend responde 409 CONFLICTO si ya hay una toma para esa hora.
+  'toma-duplicada': {
+    CONFLICTO: 'Ya se registro una toma para esa hora programada.',
+  },
+  // El backend responde 400 VALIDACION si la hora no es un horario del esquema.
+  'toma-cerrada': {
+    VALIDACION: 'La hora seleccionada no corresponde a un horario programado del esquema.',
+  },
+  // El backend responde 400 VALIDACION si un residente activo no trae situacion
+  // clinica (la habitacion es opcional) o si la fecha de ingreso es futura.
+  'perfil-clinico-incompleto': {
+    VALIDACION: 'Completa la situación clínica del residente; la fecha de ingreso no puede ser futura.',
+  },
+  // El backend responde 400 VALIDACION si se desactiva sin motivo.
+  'motivo-obligatorio': {
+    VALIDACION: 'Indica el motivo de la desactivación del residente.',
   },
 }
 

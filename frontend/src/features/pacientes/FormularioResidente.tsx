@@ -1,6 +1,8 @@
-// Formulario de alta y edicion de un residente (solo ADMINISTRADOR).
-// Valida en cliente; los errores 400 (validacion) y 409 (documento
-// duplicado) del backend se muestran en el campo o en el formulario.
+ // Formulario de alta y edicion de un residente (solo ADMINISTRADOR).
+// Valida en cliente (la situacion clinica es obligatoria; la habitacion es
+// opcional porque el producto cubre centros de dia); los errores 400
+// (validacion) y 409 (documento duplicado) del backend se muestran en el campo
+// o en el formulario.
 
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -30,18 +32,34 @@ const DATOS_INICIALES: DatosPaciente = {
   fechaIngreso: '',
 }
 
+/** Fecha de hoy en formato YYYY-MM-DD (zona local del navegador). */
+function hoyIso(): string {
+  const ahora = new Date()
+  const mes = String(ahora.getMonth() + 1).padStart(2, '0')
+  const dia = String(ahora.getDate()).padStart(2, '0')
+  return `${ahora.getFullYear()}-${mes}-${dia}`
+}
+
 /** Valida los campos obligatorios y las reglas de fecha en el cliente. */
 function validar(datos: DatosPaciente): ErroresResidente {
   const errores: ErroresResidente = {}
+  const hoy = hoyIso()
   if (!datos.documento.trim()) errores.documento = 'El documento es obligatorio.'
   if (!datos.nombres.trim()) errores.nombres = 'Los nombres son obligatorios.'
   if (!datos.apellidos.trim()) errores.apellidos = 'Los apellidos son obligatorios.'
   if (!datos.fechaNacimiento) {
     errores.fechaNacimiento = 'La fecha de nacimiento es obligatoria.'
-  } else if (datos.fechaNacimiento > new Date().toISOString().slice(0, 10)) {
+  } else if (datos.fechaNacimiento > hoy) {
     errores.fechaNacimiento = 'La fecha de nacimiento no puede ser futura.'
   }
   if (!datos.sexo) errores.sexo = 'Selecciona el sexo.'
+  // La habitacion es opcional: el producto incluye centros de dia sin habitaciones.
+  if (!datos.situacionClinica?.trim()) {
+    errores.situacionClinica = 'La situacion clinica es obligatoria en un residente activo.'
+  }
+  if (datos.fechaIngreso && datos.fechaIngreso > hoy) {
+    errores.fechaIngreso = 'La fecha de ingreso no puede ser futura.'
+  }
   return errores
 }
 
@@ -68,10 +86,16 @@ export function FormularioResidente() {
     if (Object.keys(nuevos).length > 0) return
     setEnviando(true)
     try {
+      const cuerpo: DatosPaciente = {
+        ...datos,
+        habitacion: datos.habitacion?.trim() ?? null,
+        situacionClinica: datos.situacionClinica?.trim() ?? null,
+        fechaIngreso: datos.fechaIngreso || null,
+      }
       if (esEdicion) {
-        await actualizarPaciente(Number(id), datos)
+        await actualizarPaciente(Number(id), cuerpo)
       } else {
-        await crearPaciente(datos)
+        await crearPaciente(cuerpo)
       }
       navegar('/residentes')
     } catch (fallo) {
@@ -80,6 +104,10 @@ export function FormularioResidente() {
           ...previos,
           documento: mensajeDeErrorContexto('CONFLICTO', 'documento-duplicado'),
         }))
+      } else if (fallo instanceof ErrorApi && fallo.codigo === 'VALIDACION') {
+        setErrorGeneral(
+          mensajeDeErrorContexto('VALIDACION', 'perfil-clinico-incompleto'),
+        )
       } else if (fallo instanceof ErrorApi) {
         setErrorGeneral(fallo.mensajeUsuario)
       } else {

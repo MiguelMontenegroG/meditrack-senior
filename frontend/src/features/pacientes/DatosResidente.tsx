@@ -1,6 +1,7 @@
-// Cabecera del detalle de un residente: datos identificativos y estado.
-// Solo presenta; no decide permisos ni cargar datos.
+// Datos del residente dentro de su detalle: identificativos, ubicacion y
+// perfil clinico. Solo presenta; los permisos y los datos llegan resueltos.
 
+import { CircleAlert } from 'lucide-react'
 import { EtiquetaEstado } from '@/components/ui/EtiquetaEstado'
 import type { PacienteDetalle } from '@/features/pacientes/types'
 
@@ -19,12 +20,21 @@ function formatearFecha(iso: string | null): string {
   return dia && mes && anio ? `${dia}/${mes}/${anio}` : iso
 }
 
+/** Campos clinicos que faltan para completar el perfil del residente. */
+function datosClinicosPendientes(residente: PacienteDetalle): string[] {
+  const faltantes: string[] = []
+  // La habitacion es opcional: el producto incluye centros de dia sin habitaciones.
+  if (!residente.situacionClinica?.trim()) faltantes.push('la situación clínica')
+  return faltantes
+}
+
 interface PropsDatosResidente {
   residente: PacienteDetalle
 }
 
-/** Bloque de datos basicos del residente. */
+/** Bloque de datos basicos y clinicos del residente. */
 export function DatosResidente({ residente }: PropsDatosResidente) {
+  const pendientes = residente.activo ? datosClinicosPendientes(residente) : []
   return (
     <section className="panel" aria-label="Datos del residente">
       <div className="panel-header">
@@ -57,11 +67,17 @@ export function DatosResidente({ residente }: PropsDatosResidente) {
           <dt>Fecha de ingreso</dt>
           <dd>{formatearFecha(residente.fechaIngreso)}</dd>
         </div>
-        <div>
-          <dt>Situación clínica</dt>
-          <dd>{residente.situacionClinica ?? 'Sin registrar'}</dd>
-        </div>
       </dl>
+      <div className="bloque-clinico">
+        <h4>Situación clínica</h4>
+        <p>{residente.situacionClinica?.trim() || 'Sin registrar'}</p>
+      </div>
+      {pendientes.length > 0 && (
+        <p className="form-error" role="alert">
+          <CircleAlert size={16} /> Perfil clínico incompleto: falta {pendientes.join(' y ')}.
+          Complétalo desde "Editar" para que el residente tenga toda la información clínica.
+        </p>
+      )}
     </section>
   )
 }

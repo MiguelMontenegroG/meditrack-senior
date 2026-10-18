@@ -4,6 +4,7 @@
 
 import { apiClient } from '@/lib/api-client'
 import type {
+  CambioEstadoPaciente,
   DatosPaciente,
   FiltrosPacientes,
   PacienteDetalle,
@@ -49,7 +50,20 @@ export function actualizarPaciente(id: number, datos: DatosPaciente): Promise<Pa
   return apiClient.put<PacienteDetalle>(`/pacientes/${id}`, datos)
 }
 
-/** Activa o desactiva un residente (solo ADMINISTRADOR; borrado logico). */
-export function cambiarEstadoPaciente(id: number, activo: boolean): Promise<PacienteDetalle> {
-  return apiClient.patch<PacienteDetalle>(`/pacientes/${id}/estado`, { activo })
+/**
+ * Activa o desactiva un residente (solo ADMINISTRADOR; borrado logico). Al
+ * desactivar el backend exige un motivo, que queda en la auditoria.
+ */
+export function cambiarEstadoPaciente(
+  id: number,
+  activo: boolean,
+  motivo?: string,
+): Promise<PacienteDetalle> {
+  // Al activar no se envia motivo (el backend lo ignora); al desactivar se
+  // recorta y se envia null si esta vacio, para que el backend responda 400
+  // VALIDACION en vez de guardar un motivo en blanco en la auditoria.
+  const cuerpo: CambioEstadoPaciente = activo
+    ? { activo: true }
+    : { activo: false, motivo: motivo?.trim() || null }
+  return apiClient.patch<PacienteDetalle>(`/pacientes/${id}/estado`, cuerpo)
 }

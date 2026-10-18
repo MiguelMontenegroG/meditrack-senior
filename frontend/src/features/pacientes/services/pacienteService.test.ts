@@ -1,5 +1,6 @@
 // Pruebas del servicio de residentes con el cliente HTTP simulado. No
-// dependen del backend real ni de la interfaz.
+// dependen del backend real ni de la interfaz. Cubren tambien el motivo
+// obligatorio que acompana a la desactivacion (borrado logico).
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -80,14 +81,27 @@ describe('pacienteService', () => {
     expect(opciones.method).toBe('PUT')
   })
 
-  it('cambia el estado con PATCH y cuerpo { activo }', async () => {
+  it('desactiva con PATCH, el estado y el motivo recortado', async () => {
     const espia = vi.fn().mockResolvedValue(respuesta({ id: 3, activo: false }))
     vi.stubGlobal('fetch', espia)
-    const detalle = await cambiarEstadoPaciente(3, false)
+    const detalle = await cambiarEstadoPaciente(3, false, '  Traslado de centro  ')
     const [url, opciones] = espia.mock.calls[0]
     expect(url).toBe('http://localhost:8080/api/pacientes/3/estado')
     expect(opciones.method).toBe('PATCH')
-    expect(JSON.parse(opciones.body as string)).toEqual({ activo: false })
+    expect(JSON.parse(opciones.body as string)).toEqual({
+      activo: false,
+      motivo: 'Traslado de centro',
+    })
     expect(detalle.activo).toBe(false)
+  })
+
+  it('activa con PATCH sin enviar motivo', async () => {
+    const espia = vi.fn().mockResolvedValue(respuesta({ id: 3, activo: true }))
+    vi.stubGlobal('fetch', espia)
+    await cambiarEstadoPaciente(3, true, 'no aplica')
+    const opciones = espia.mock.calls[0][1]
+    const cuerpo = JSON.parse(opciones.body as string)
+    expect(cuerpo.activo).toBe(true)
+    expect(cuerpo.motivo).toBeUndefined()
   })
 })

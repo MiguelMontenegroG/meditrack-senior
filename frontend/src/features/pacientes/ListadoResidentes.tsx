@@ -70,6 +70,17 @@ export function ListadoResidentes() {
   const residentes = useMemo(() => datos?.contenido ?? [], [datos])
   const abrirDetalle = (id: number) => navegar(`/residentes/${id}`)
 
+  // Un vacio con busqueda o con el filtro de inactivos significa "sin
+  // resultados", no "el centro no tiene residentes": el texto y la accion
+  // cambian para no confundir al usuario ni ofrecer crear un duplicado.
+  const hayBusquedaOSinFiltro = Boolean(textoDiferido.trim()) || !soloActivos
+
+  const limpiarFiltros = () => {
+    setTexto('')
+    setSoloActivos(true)
+    setPagina(0)
+  }
+
   return (
     <div className="page-content">
       <div className="page-intro">
@@ -103,10 +114,35 @@ export function ListadoResidentes() {
         />
       )}
       {!cargando && !error && residentes.length === 0 && (
-        <EstadoVacio
-          titulo="No hay residentes"
-          descripcion="No se encontraron residentes con los criterios actuales."
-        />
+        <>
+          {hayBusquedaOSinFiltro ? (
+            <EstadoVacio
+              titulo="Sin resultados"
+              descripcion={
+                textoDiferido.trim()
+                  ? `No hay residentes que coincidan con "${textoDiferido.trim()}".`
+                  : 'No hay residentes inactivos registrados.'
+              }
+              accion={
+                <BotonAccion variant="outline" onClick={limpiarFiltros}>
+                  Limpiar busqueda y filtros
+                </BotonAccion>
+              }
+            />
+          ) : (
+            <EstadoVacio
+              titulo="Aun no hay residentes"
+              descripcion="Registra el primer residente del centro para empezar a hacer seguimiento."
+              accion={
+                puedeGestionar ? (
+                  <BotonAccion onClick={() => navegar('/residentes/nuevo')}>
+                    <Plus size={17} /> Registrar residente
+                  </BotonAccion>
+                ) : undefined
+              }
+            />
+          )}
+        </>
       )}
       {!cargando && !error && residentes.length > 0 && (
         <>
