@@ -1,4 +1,4 @@
-import { LayoutDashboard, Pill, Users } from 'lucide-react'
+import { CalendarDays, LayoutDashboard, Pill, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useAutenticacion } from '@/features/auth/useAutenticacion'
@@ -17,18 +17,23 @@ const NAVEGACION_ADMIN: ElementoNavegacion[] = [
   { etiqueta: 'Panel', ruta: '/dashboard', icono: LayoutDashboard },
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
   { etiqueta: 'Medicamentos', ruta: '/medicamentos', icono: Pill },
+  { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
 ]
 
 const NAVEGACION_CUIDADOR: ElementoNavegacion[] = [
   { etiqueta: 'Hoy', ruta: '/cuidador', icono: LayoutDashboard },
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
   { etiqueta: 'Medicamentos', ruta: '/medicamentos', icono: Pill },
+  { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
 ]
 
 const NAVEGACION_POR_ROL: Record<RolUsuario, ElementoNavegacion[]> = {
   ADMINISTRADOR: NAVEGACION_ADMIN,
   CUIDADOR_ENFERMERO: NAVEGACION_CUIDADOR,
-  FAMILIAR_AUTORIZADO: [{ etiqueta: 'Residentes', ruta: '/residentes', icono: Users }],
+  FAMILIAR_AUTORIZADO: [
+    { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
+    { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
+  ],
 }
 
 /** Barra de navegacion inferior (solo movil). */

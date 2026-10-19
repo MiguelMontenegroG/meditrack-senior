@@ -1,4 +1,4 @@
-﻿// Pruebas del panel de administrador: todos los KPI salen de los servicios
+// Pruebas del panel de administrador: todos los KPI salen de los servicios
 // reales (residentes, medicamentos y agenda) y la fecha del saludo es la del
 // dia. Se verifica tambien el estado de error.
 
@@ -9,6 +9,7 @@ import { PanelAdministrador } from '@/features/dashboard/PanelAdministrador'
 import * as pacienteService from '@/features/pacientes/services/pacienteService'
 import * as medicamentoService from '@/features/medicacion/services/medicamentoService'
 import * as tomaService from '@/features/medicacion/services/tomaService'
+import * as citaService from '@/features/citas/services/citaService'
 import type { AgendaEsquema } from '@/features/medicacion/types'
 
 vi.mock('@/features/auth/useAutenticacion', () => ({
@@ -36,9 +37,12 @@ function renderPanel() {
   )
 }
 
+const PAGINA_CITAS_VACIA = { contenido: [], pagina: 0, tamano: 100, total: 0, totalPaginas: 0 }
+
 describe('PanelAdministrador', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    vi.spyOn(citaService, 'listarCitas').mockResolvedValue(PAGINA_CITAS_VACIA)
   })
 
   it('muestra los contadores reales de residentes y medicamentos', async () => {

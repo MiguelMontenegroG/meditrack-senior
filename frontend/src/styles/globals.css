@@ -86,11 +86,16 @@ button,input { font:inherit; } button { cursor:pointer; } button:focus-visible,i
 .datos-residente>div{display:flex;flex-direction:column;gap:2px;border-top:1px solid #eeeae3;padding-top:10px}
 .datos-residente dt{font-size:12px;color:#718084;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
 .datos-residente dd{margin:0;font-size:16px;color:#1e2b2f}
-/* Bloque clinico del detalle: la situacion clinica ocupa todo el ancho y
-   conserva los saltos de linea registrados. */
-.bloque-clinico{margin:0 20px 22px;border-top:1px solid #eeeae3;padding-top:12px}
+/* Bloque clinico del detalle: la situacion clinica ocupa todo el ancho, con
+   margenes interiores alineados al resto del panel y conservando los saltos
+   de linea registrados. */
+.bloque-clinico{margin:0 20px 18px;border-top:1px solid #eeeae3;padding:16px 0 0}
 .bloque-clinico h4{margin:0 0 6px;font-size:12px;color:#718084;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
-.bloque-clinico p{margin:0;font-size:16px;color:#1e2b2f;white-space:pre-line}
+.bloque-clinico p{margin:0;padding:14px 16px;background:#faf9f6;border-left:3px solid #bfd9d3;border-radius:0 6px 6px 0;font-size:16px;line-height:1.6;color:#1e2b2f;white-space:pre-line}
+
+/* Aviso de perfil clinico incompleto: separado de los bordes del panel. */
+.datos-residente~.form-error,.panel>.form-error{margin:0 20px 20px;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.panel>.form-error svg{flex-shrink:0;margin-top:2px}
 
 /* Listas de contactos y usuarios vinculados. */
 .lista-contactos,.lista-usuarios{list-style:none;margin:0;padding:0 14px 8px}
@@ -150,6 +155,10 @@ button,input { font:inherit; } button { cursor:pointer; } button:focus-visible,i
   .barra-listado{flex-direction:column;align-items:stretch}
   .buscador-residentes{min-width:0}
   .confirmacion{margin:14px 14px 16px}
+  .bloque-clinico{margin-left:14px;margin-right:14px}
+  .lista-esquemas{padding-left:14px;padding-right:14px}
+  .datos-residente~.form-error,.panel>.form-error{margin-left:14px;margin-right:14px}
+  .panel-vacio{padding-left:14px;padding-right:14px}
 }
 
 /* ---------------------------------------------------------------- */
@@ -187,11 +196,16 @@ button,input { font:inherit; } button { cursor:pointer; } button:focus-visible,i
 /* Acciones del encabezado de panel (p. ej. Agenda + Nuevo esquema). */
 .panel-acciones{display:flex;flex-wrap:wrap;gap:8px}
 
-/* Lista de esquemas de medicacion embebida en el detalle del residente. */
-.lista-esquemas{list-style:none;margin:0;padding:0 14px 12px}
-.esquema-item{border-top:1px solid #eeeae3;padding:16px 6px;display:flex;flex-direction:column;gap:10px}
-.esquema-cabecera{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
-.esquema-detalle{display:flex;flex-wrap:wrap;gap:22px}
+/* Lista de esquemas de medicacion embebida en el detalle del residente. El
+   relleno lateral iguala el del resto de secciones para que las filas no
+   queden pegadas al borde del panel. */
+.lista-esquemas{list-style:none;margin:0;padding:0 20px 18px}
+.esquema-item{border-top:1px solid #eeeae3;padding:16px 0;display:flex;flex-direction:column;gap:10px}
+.esquema-item:first-child{border-top:0;padding-top:2px}
+.esquema-item .contacto-datos small{color:#5b6a6e;font-size:14px}
+.esquema-detalle{display:flex;flex-wrap:wrap;gap:22px;padding:12px 14px;background:#faf9f6;border-radius:6px}
+.esquema-item>p.muted{margin:0;padding:0 2px;line-height:1.55}
+.esquema-cabecera{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:10px}
 .esquema-detalle span{display:flex;flex-direction:column;gap:2px}
 .esquema-detalle small{color:#718084;font-size:12px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
 .esquema-detalle strong{color:#1e2b2f;font-size:15px}
@@ -232,4 +246,42 @@ button,input { font:inherit; } button { cursor:pointer; } button:focus-visible,i
   .esquema-detalle{gap:14px}
   .panel-acciones{width:100%}
   .panel-acciones .btn{flex:1}
+}
+/* --- Citas: calendario, tarjetas, proximas citas --- */
+.filtros-calendario{flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:18px}
+.filtros-calendario label,.filtros-calendario fieldset{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:#5b6a6e;border:0;padding:0;margin:0}
+.filtros-calendario select,.filtros-calendario input[type=date]{height:42px;border:1px solid #c7c1b5;border-radius:6px;padding:0 11px;background:#fff;color:#1e2b2f;font-size:15px}
+.filtro-rango{flex-direction:row!important;gap:12px!important}
+.filtro-rango label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:#5b6a6e}
+.grupo-dia{margin-bottom:22px}
+.grupo-dia-titulo{font-family:Georgia,serif;font-size:19px;text-transform:capitalize;margin:0 0 10px;font-weight:600}
+.listado-movil{display:none}
+.tabla-citas{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e1dcd3;border-radius:8px;overflow:hidden}
+.tabla-citas th,.tabla-citas td{text-align:left;padding:11px 12px;border-top:1px solid #eeeae3;font-size:14px;vertical-align:middle}
+.tabla-citas thead th{background:#f6f4ef;border-top:0;color:#5b6a6e;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.tabla-citas .celda-motivo{max-width:220px}
+.acciones-cita{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.acciones-cita .btn{min-height:34px;padding:0 10px;font-size:13px}
+.confirmar-cancelacion{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;color:#b03a2e;font-weight:700}
+.tarjeta-cita{background:#fff;border:1px solid #e1dcd3;border-radius:8px;padding:14px 15px;margin-bottom:11px}
+.tarjeta-cita-cabecera{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.tarjeta-cita-hora{font-size:18px;font-weight:700;color:#0e5a64;font-variant-numeric:tabular-nums}
+.tarjeta-cita-residente{margin:0;font-weight:700}
+.tarjeta-cita-detalle{font-size:13px;margin:2px 0 0}
+.tarjeta-cita-motivo{font-size:13px;color:#5b6a6e;margin:6px 0 0}
+.lista-proximas-citas{list-style:none;margin:0;padding:0 16px}
+.fila-proxima-cita{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #eeeae3;padding:11px 0}
+.fila-proxima-cita strong,.fila-proxima-cita span{display:block}
+.fila-proxima-cita span{color:#718084;font-size:13px}
+.acciones-proximas-citas{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.seccion-vacia{padding:0 18px 14px}
+.panel-vacio{padding:4px 20px 20px}
+.panel-proximas-citas{margin-bottom:18px}
+
+@media(max-width:767px){
+  .filtros-calendario{gap:10px}
+  .filtro-rango{width:100%;flex-direction:column!important}
+  .filtros-calendario label,.filtros-calendario select,.filtros-calendario input[type=date]{width:100%}
+  .listado-escritorio,.tabla-citas{display:none}
+  .listado-movil{display:block}
 }

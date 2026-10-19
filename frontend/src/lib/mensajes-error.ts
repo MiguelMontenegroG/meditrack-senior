@@ -52,6 +52,11 @@ export type ContextoError =
   | 'toma-cerrada'
   | 'perfil-clinico-incompleto'
   | 'motivo-obligatorio'
+  | 'cita-fecha-pasada'
+  | 'cita-duplicada'
+  | 'cita-estado-final'
+  | 'cita-hora-no-llegada'
+  | 'especialidad-inexistente'
 
 const MENSAJES_CONTEXTO: Record<ContextoError, Partial<Record<CodigoError, string>>> = {
   // El backend responde 409 CONFLICTO cuando el documento ya existe.
@@ -99,6 +104,26 @@ const MENSAJES_CONTEXTO: Record<ContextoError, Partial<Record<CodigoError, strin
   // El backend responde 400 VALIDACION si se desactiva sin motivo.
   'motivo-obligatorio': {
     VALIDACION: 'Indica el motivo de la desactivación del residente.',
+  },
+  // 400 VALIDACION si la fecha y hora de la cita es pasada.
+  'cita-fecha-pasada': {
+    VALIDACION: 'La fecha y hora de la cita no puede estar en el pasado.',
+  },
+  // 400 VALIDACION si ya hay una cita del residente con esa misma fecha y hora.
+  'cita-duplicada': {
+    VALIDACION: 'Ya existe una cita para ese residente en la misma fecha y hora.',
+  },
+  // 409 CONFLICTO si la cita ya no esta en estado PROGRAMADA.
+  'cita-estado-final': {
+    CONFLICTO: 'La cita ya no esta en estado inicial (Programada); no se puede modificar.',
+  },
+  // 400 VALIDACION si se marca CUMPLIDA/INCUMPLIDA antes de la hora.
+  'cita-hora-no-llegada': {
+    VALIDACION: 'Aun no llega la fecha y hora de la cita; espera para marcarla.',
+  },
+  // 404 si la especialidad indicada no existe en el catalogo.
+  'especialidad-inexistente': {
+    CUERPO_INVALIDO: 'La especialidad seleccionada no existe.',
   },
 }
 

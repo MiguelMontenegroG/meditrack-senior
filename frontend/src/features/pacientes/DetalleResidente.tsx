@@ -15,6 +15,7 @@ import { SeccionContactos } from '@/features/pacientes/SeccionContactos'
 import { SeccionFamiliares } from '@/features/pacientes/SeccionFamiliares'
 import { SeccionCuidadores } from '@/features/pacientes/SeccionCuidadores'
 import { SeccionEsquemas } from '@/features/medicacion/SeccionEsquemas'
+import { SeccionProximasCitas } from '@/features/citas/SeccionProximasCitas'
 
 /** Detalle del residente con contactos y gestion (ADMIN) de vinculos. */
 export function DetalleResidente() {
@@ -77,19 +78,21 @@ export function DetalleResidente() {
 
       <DatosResidente residente={paciente} />
 
+      <SeccionProximasCitas pacienteId={paciente.id} />
+
       <SeccionEsquemas
-            pacienteId={paciente.id}
+        pacienteId={paciente.id}
         esquemas={esquemas}
         puedeGestionar={puedeGestionar}
-            alCambiar={recargar}
-          />
+        alCambiar={recargar}
+      />
 
       <SeccionContactos
-            pacienteId={paciente.id}
+        pacienteId={paciente.id}
         contactos={paciente.contactos}
         puedeGestionar={puedeGestionar}
-            alCambiar={recargar}
-          />
+        alCambiar={recargar}
+      />
 
       {puedeGestionar && (
         <div className="grid-detalle">

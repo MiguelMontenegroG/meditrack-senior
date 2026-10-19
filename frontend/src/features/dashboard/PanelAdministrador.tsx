@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useAutenticacion } from '@/features/auth/useAutenticacion'
 import { EnConstruccion } from '@/components/ui/EnConstruccion'
@@ -6,6 +6,7 @@ import { IndicadorKpi } from '@/features/dashboard/IndicadorKpi'
 import { PanelAlertas } from '@/features/dashboard/PanelAlertas'
 import { PanelCumplimiento } from '@/features/dashboard/PanelCumplimiento'
 import { TablaResidentes } from '@/features/dashboard/TablaResidentes'
+import { PanelProximasCitas } from '@/features/dashboard/PanelProximasCitas'
 import { useResumenOperativo } from '@/features/dashboard/useResumenOperativo'
 import type { IndicadorKpiDatos } from '@/features/dashboard/types'
 
@@ -125,9 +126,11 @@ export function PanelAdministrador() {
         <PanelCumplimiento serie={serie} cargando={cargando} />
       </div>
 
+      <PanelProximasCitas />
+
       <TablaResidentes />
 
-      <EnConstruccion titulo="Citas, bitacora, alertas y reportes" />
+      <EnConstruccion titulo="Bitacora, alertas y reportes" />
     </div>
   )
 }

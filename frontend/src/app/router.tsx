@@ -4,6 +4,8 @@ import { RutaLogin } from '@/app/RutaLogin'
 import { RutaProtegida } from '@/features/auth/guards/RutaProtegida'
 import { CambioContrasena } from '@/features/auth/CambioContrasena'
 import { PanelAdministrador } from '@/features/dashboard/PanelAdministrador'
+import { Calendario } from '@/features/citas/Calendario'
+import { FormularioCita } from '@/features/citas/FormularioCita'
 import { VistaCuidador } from '@/features/cuidador/VistaCuidador'
 import { ListadoResidentes } from '@/features/pacientes/ListadoResidentes'
 import { DetalleResidente } from '@/features/pacientes/DetalleResidente'
@@ -61,7 +63,7 @@ export const router = createBrowserRouter([
         element: <MainLayout titulo="Panel" />,
         children: [
           { path: '/dashboard', element: <PanelAdministrador /> },
-          { path: '/calendario', element: <EnConstruccion titulo="Calendario" /> },
+          { path: '/calendario', element: <Calendario /> },
           { path: '/bitacora', element: <EnConstruccion titulo="Bitacora" /> },
           { path: '/alertas', element: <EnConstruccion titulo="Alertas" /> },
           { path: '/reportes', element: <EnConstruccion titulo="Reportes" /> },
@@ -96,6 +98,20 @@ export const router = createBrowserRouter([
         children: [
           { path: '/medicamentos/nuevo', element: <FormularioMedicamento /> },
           { path: '/medicamentos/:id/editar', element: <FormularioMedicamento /> },
+        ],
+      },
+    ],
+  },
+  // Escritura de citas: agendar y editar, solo ADMINISTRADOR. La lectura del
+  // calendario la cubre la ruta /calendario (panel) para los tres roles.
+  {
+    element: <RutaProtegida rolesPermitidos={['ADMINISTRADOR']} />,
+    children: [
+      {
+        element: <MainLayout titulo="Citas" />,
+        children: [
+          { path: '/calendario/nuevo', element: <FormularioCita /> },
+          { path: '/calendario/:citaId/editar', element: <FormularioCita /> },
         ],
       },
     ],
