@@ -1,5 +1,6 @@
-// Pruebas de las utilidades de fecha del modulo de citas: la conversion entre
-// hora local de Bogota (UTC-5) y el instante UTC, y la agrupacion por dia.
+// Pruebas de las utilidades de fecha/hora de America/Bogota compartidas: la
+// conversion entre hora local de Bogota (UTC-5) y el instante UTC, y la
+// agrupacion por dia.
 
 import { describe, expect, it } from 'vitest'
 import {
@@ -9,9 +10,9 @@ import {
   horaBogota,
   sumarDias,
   yaPaso,
-} from '@/features/citas/fechas'
+} from '@/lib/fechas-bogota'
 
-describe('fechas de citas', () => {
+describe('fechas de Bogota', () => {
   it('convierte las 09:00 de Bogota al instante UTC con sufijo Z', () => {
     // 09:00 en Bogota (UTC-5) son las 14:00 UTC.
     expect(aInstanteUtc('2026-01-20', '09:00')).toBe('2026-01-20T14:00:00.000Z')

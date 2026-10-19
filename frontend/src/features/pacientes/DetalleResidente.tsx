@@ -16,6 +16,7 @@ import { SeccionFamiliares } from '@/features/pacientes/SeccionFamiliares'
 import { SeccionCuidadores } from '@/features/pacientes/SeccionCuidadores'
 import { SeccionEsquemas } from '@/features/medicacion/SeccionEsquemas'
 import { SeccionProximasCitas } from '@/features/citas/SeccionProximasCitas'
+import { SeccionSignosVitales } from '@/features/bitacora/SeccionSignosVitales'
 
 /** Detalle del residente con contactos y gestion (ADMIN) de vinculos. */
 export function DetalleResidente() {
@@ -79,6 +80,8 @@ export function DetalleResidente() {
       <DatosResidente residente={paciente} />
 
       <SeccionProximasCitas pacienteId={paciente.id} />
+
+      <SeccionSignosVitales pacienteId={paciente.id} />
 
       <SeccionEsquemas
         pacienteId={paciente.id}

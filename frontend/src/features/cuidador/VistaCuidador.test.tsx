@@ -1,4 +1,4 @@
-﻿// Pruebas de la vista del cuidador: tomas reales de la agenda, residentes a
+// Pruebas de la vista del cuidador: tomas reales de la agenda, residentes a
 // cargo con su conteo de tomas abiertas y ausencia de cifras de bitacora de
 // ejemplo (solo el aviso "proximamente").
 
@@ -69,6 +69,15 @@ describe('VistaCuidador', () => {
     await screen.findByText('Residentes a tu cargo')
     expect(screen.queryByText('128/78')).not.toBeInTheDocument()
     expect(screen.queryByText('102')).not.toBeInTheDocument()
-    expect(screen.getByText(/Proximamente/)).toBeInTheDocument()
+    expect(screen.queryByText(/Proximamente/)).not.toBeInTheDocument()
+  })
+
+  it('ofrece la bitacora real de cada residente de su alcance', async () => {
+    renderVista()
+    const enlaces = await screen.findAllByRole('button', { name: /abrir la bitacora de rosa/i })
+    // Un solo residente en el alcance: un unico acceso, sin cifras inventadas.
+    expect(enlaces).toHaveLength(1)
+    expect(screen.getByText(/1 residente en tu alcance/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /ver todos los residentes/i })).toBeInTheDocument()
   })
 })

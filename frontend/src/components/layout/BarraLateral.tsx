@@ -5,8 +5,9 @@ import { MarcaMediTrack } from '@/components/layout/MarcaMediTrack'
 import { useAutenticacion } from '@/features/auth/useAutenticacion'
 import type { RolUsuario } from '@/features/auth/types'
 
-// Barra lateral de escritorio. Muestra "Residentes" a los tres roles; las
-// secciones de administracion (Panel, Calendario, etc.) solo al ADMINISTRADOR.
+// Barra lateral de escritorio. Muestra "Residentes", "Calendario" y "Bitacora"
+// a los tres roles; las secciones de administracion (Panel, Alertas, Reportes,
+// Usuarios) solo al ADMINISTRADOR.
 
 interface ElementoNavegacion {
   etiqueta: string
@@ -30,11 +31,13 @@ const NAVEGACION_CUIDADOR: ElementoNavegacion[] = [
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
   { etiqueta: 'Medicamentos', ruta: '/medicamentos', icono: Pill },
   { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
+  { etiqueta: 'Bitacora', ruta: '/bitacora', icono: ClipboardList },
 ]
 
 const NAVEGACION_FAMILIAR: ElementoNavegacion[] = [
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
   { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
+  { etiqueta: 'Bitacora', ruta: '/bitacora', icono: ClipboardList },
 ]
 
 const NAVEGACION_POR_ROL: Record<RolUsuario, ElementoNavegacion[]> = {

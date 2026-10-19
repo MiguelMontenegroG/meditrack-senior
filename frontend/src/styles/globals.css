@@ -285,3 +285,35 @@ button,input { font:inherit; } button { cursor:pointer; } button:focus-visible,i
   .listado-escritorio,.tabla-citas{display:none}
   .listado-movil{display:block}
 }
+
+/* --- Bitacora de signos vitales: formulario, historial y resumen --- */
+.formulario-signos{display:flex;flex-direction:column;gap:16px;padding:4px 20px 22px}
+.formulario-signos h4{margin:0;font-size:16px;font-weight:700}
+.formulario-signos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 18px}
+.formulario-signos label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700;color:#1e2b2f}
+.formulario-signos input,.formulario-signos textarea{display:block;width:100%;min-height:44px;border:1px solid #c7c1b5;border-radius:6px;padding:0 13px;background:#fff;color:#1e2b2f;font-size:16px}
+.formulario-signos textarea{min-height:0;padding:10px 13px;resize:vertical}
+.formulario-signos input:focus-visible,.formulario-signos textarea:focus-visible{border-color:#0e5a64}
+.formulario-signos .campo-ancho{grid-column:1 / -1}
+.formulario-signos .form-error{margin:0}
+.tabla-signos .celda-motivo{max-width:280px}
+.tarjeta-signos{align-items:flex-start}
+.tarjeta-signos .tarjeta-residente-info small{display:flex;flex-wrap:wrap;gap:4px 12px}
+.barra-listado .filtro-rango input[type=date]{height:42px;border:1px solid #c7c1b5;border-radius:6px;padding:0 11px;background:#fff;color:#1e2b2f;font-size:15px}
+.seccion-signos-vitales .vitals-grid{padding-top:6px}
+.seccion-signos-vitales .seccion-observaciones{padding:0 20px 14px;line-height:1.5}
+.seccion-signos-vitales .panel-footer{margin-top:2px}
+@media(max-width:767px){
+  .formulario-signos{padding:2px 14px 18px}
+  .formulario-signos-grid{grid-template-columns:1fr}
+  .seccion-signos-vitales .seccion-observaciones{padding:0 14px 12px}
+}
+/* --- Selector de bitacora (/bitacora): tabla y tarjetas de residentes --- */
+.enlace-bitacora{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border:1px solid #bfcac8;border-radius:6px;background:#fff;color:#0e5a64;font-size:14px;font-weight:700;text-decoration:none;white-space:nowrap}
+.enlace-bitacora:hover{background:#e1eff0;border-color:#0e5a64}
+a.tarjeta-residente{text-decoration:none;color:inherit}
+a.tarjeta-residente:hover{background:#faf9f6}
+@media(max-width:767px){
+  .enlace-bitacora{width:100%;justify-content:center}
+  .tabla-signos .celda-motivo{max-width:none}
+}

@@ -1,4 +1,4 @@
-import { CalendarDays, LayoutDashboard, Pill, Users } from 'lucide-react'
+import { CalendarDays, ClipboardList, LayoutDashboard, Pill, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useAutenticacion } from '@/features/auth/useAutenticacion'
@@ -17,23 +17,26 @@ const NAVEGACION_ADMIN: ElementoNavegacion[] = [
   { etiqueta: 'Panel', ruta: '/dashboard', icono: LayoutDashboard },
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
   { etiqueta: 'Medicamentos', ruta: '/medicamentos', icono: Pill },
-  { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
+  { etiqueta: 'Bitacora', ruta: '/bitacora', icono: ClipboardList },
 ]
 
 const NAVEGACION_CUIDADOR: ElementoNavegacion[] = [
   { etiqueta: 'Hoy', ruta: '/cuidador', icono: LayoutDashboard },
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
   { etiqueta: 'Medicamentos', ruta: '/medicamentos', icono: Pill },
+  { etiqueta: 'Bitacora', ruta: '/bitacora', icono: ClipboardList },
+]
+
+const NAVEGACION_FAMILIAR: ElementoNavegacion[] = [
+  { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
   { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
+  { etiqueta: 'Bitacora', ruta: '/bitacora', icono: ClipboardList },
 ]
 
 const NAVEGACION_POR_ROL: Record<RolUsuario, ElementoNavegacion[]> = {
   ADMINISTRADOR: NAVEGACION_ADMIN,
   CUIDADOR_ENFERMERO: NAVEGACION_CUIDADOR,
-  FAMILIAR_AUTORIZADO: [
-    { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
-    { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
-  ],
+  FAMILIAR_AUTORIZADO: NAVEGACION_FAMILIAR,
 }
 
 /** Barra de navegacion inferior (solo movil). */
