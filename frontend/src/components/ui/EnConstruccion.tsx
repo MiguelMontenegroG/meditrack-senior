@@ -1,17 +1,18 @@
-import { ClipboardList, Plus } from 'lucide-react'
-import { BotonAccion } from '@/components/ui/BotonAccion'
+import { ClipboardList } from 'lucide-react'
 
-// Pantalla reutilizable para rutas sin implementar todavia.
-// Reemplaza al componente generico de relleno: cada ruta pendiente
-// (pacientes, medicacion, citas, bitacora, reportes, admin) muestra esto.
-
+// Pantalla reutilizable para rutas que aun no tienen datos reales que mostrar.
+// Regla del proyecto: este componente NO ofrece acciones. Un boton "Crear
+// nuevo" aqui no tiene destino ni endpoint detras, asi que enganaba al usuario;
+// si una seccion necesita un alta, la pinta su propia pantalla con su ruta real.
 interface PropsEnConstruccion {
   /** Nombre de la seccion que aun no tiene pantalla. */
   titulo: string
+  /** Texto explicativo opcional; por defecto se describe el estado. */
+  descripcion?: string
 }
 
 /** Aviso de seccion en construccion, con el lenguaje visual del diseno. */
-export function EnConstruccion({ titulo }: PropsEnConstruccion) {
+export function EnConstruccion({ titulo, descripcion }: PropsEnConstruccion) {
   return (
     <div className="page-content">
       <div className="empty-page">
@@ -21,11 +22,8 @@ export function EnConstruccion({ titulo }: PropsEnConstruccion) {
         <p className="eyebrow">MediTrack Senior</p>
         <h2>{titulo}</h2>
         <p className="muted">
-          Esta vista esta lista para conectar sus datos clinicos y operaciones.
+          {descripcion ?? 'Esta seccion aun no tiene una pantalla con datos reales.'}
         </p>
-        <BotonAccion>
-          <Plus size={17} /> Crear nuevo
-        </BotonAccion>
       </div>
     </div>
   )

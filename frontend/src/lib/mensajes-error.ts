@@ -57,6 +57,9 @@ export type ContextoError =
   | 'cita-estado-final'
   | 'cita-hora-no-llegada'
   | 'especialidad-inexistente'
+  | 'bitacora-fecha-futura'
+  | 'bitacora-sin-signos'
+  | 'bitacora-valores-incoherentes'
 
 const MENSAJES_CONTEXTO: Record<ContextoError, Partial<Record<CodigoError, string>>> = {
   // El backend responde 409 CONFLICTO cuando el documento ya existe.
@@ -124,6 +127,18 @@ const MENSAJES_CONTEXTO: Record<ContextoError, Partial<Record<CodigoError, strin
   // 404 si la especialidad indicada no existe en el catalogo.
   'especialidad-inexistente': {
     CUERPO_INVALIDO: 'La especialidad seleccionada no existe.',
+  },
+  // 400 VALIDACION si la fecha de medicion de la bitacora es futura.
+  'bitacora-fecha-futura': {
+    VALIDACION: 'La fecha y hora de la medicion no puede estar en el futuro.',
+  },
+  // 400 VALIDACION si no se envia ningun signo vital.
+  'bitacora-sin-signos': {
+    VALIDACION: 'Registra al menos un signo vital: presion, glucosa o temperatura.',
+  },
+  // 400 VALIDACION por valores fuera de rango o presion incoherente.
+  'bitacora-valores-incoherentes': {
+    VALIDACION: 'Revisa los valores: deben estar dentro del rango y la diastolica ser menor que la sistolica.',
   },
 }
 

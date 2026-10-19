@@ -16,12 +16,17 @@ import { ListadoMedicamentosCatalogo } from '@/features/medicacion/ListadoMedica
 import { FormularioMedicamento } from '@/features/medicacion/FormularioMedicamento'
 import { FormularioEsquema } from '@/features/medicacion/FormularioEsquema'
 import { TomasResidente } from '@/features/medicacion/TomasResidente'
+import { BitacoraResidente } from '@/features/bitacora/BitacoraResidente'
+import { SelectorBitacora } from '@/features/bitacora/SelectorBitacora'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { MainLayout } from '@/layouts/MainLayout'
 
 // Router real de la aplicacion. Rutas publicas para login; rutas protegidas
 // por rol. Los residentes son transversales: la escritura (nuevo/editar) queda
 // en un bloque solo para ADMINISTRADOR y la lectura segun alcance en otro.
+// El calendario de citas y el selector de bitacora son de lectura para los tres
+// roles (el backend filtra el alcance); agendar citas y registrar signos
+// vitales siguen limitados por rol en sus propias rutas.
 export const router = createBrowserRouter([
   {
     element: <AuthLayout />,
@@ -52,7 +57,31 @@ export const router = createBrowserRouter([
           { path: '/residentes', element: <ListadoResidentes /> },
           { path: '/residentes/:id', element: <DetalleResidente /> },
           { path: '/residentes/:id/tomas', element: <TomasResidente /> },
+          { path: '/residentes/:id/signos-vitales', element: <BitacoraResidente /> },
         ],
+      },
+    ],
+  },
+  // Calendario de citas: lectura para los tres roles. Las acciones de agendar y
+  // editar viven en su propio bloque, solo para ADMINISTRADOR.
+  {
+    element: <RutaProtegida />,
+    children: [
+      {
+        element: <MainLayout titulo="Citas" />,
+        children: [{ path: '/calendario', element: <Calendario /> }],
+      },
+    ],
+  },
+  // Selector de bitacora: los tres roles eligen un residente de su alcance y
+  // abren su bitacora. No se piden los ultimos signos de cada residente (ver el
+  // comentario de SelectorBitacora: seria una llamada por fila).
+  {
+    element: <RutaProtegida />,
+    children: [
+      {
+        element: <MainLayout titulo="Bitacora" />,
+        children: [{ path: '/bitacora', element: <SelectorBitacora /> }],
       },
     ],
   },
@@ -63,15 +92,13 @@ export const router = createBrowserRouter([
         element: <MainLayout titulo="Panel" />,
         children: [
           { path: '/dashboard', element: <PanelAdministrador /> },
-          { path: '/calendario', element: <Calendario /> },
-          { path: '/bitacora', element: <EnConstruccion titulo="Bitacora" /> },
           { path: '/alertas', element: <EnConstruccion titulo="Alertas" /> },
           { path: '/reportes', element: <EnConstruccion titulo="Reportes" /> },
         ],
       },
       {
         element: <MainLayout titulo="Usuarios" />,
-    children: [
+        children: [
           { path: '/usuarios', element: <ListadoUsuarios /> },
           { path: '/usuarios/nuevo', element: <FormularioUsuario /> },
           { path: '/usuarios/:id/editar', element: <FormularioUsuario /> },
@@ -103,7 +130,7 @@ export const router = createBrowserRouter([
     ],
   },
   // Escritura de citas: agendar y editar, solo ADMINISTRADOR. La lectura del
-  // calendario la cubre la ruta /calendario (panel) para los tres roles.
+  // calendario la cubre la ruta /calendario, abierta a los tres roles.
   {
     element: <RutaProtegida rolesPermitidos={['ADMINISTRADOR']} />,
     children: [
@@ -123,7 +150,7 @@ export const router = createBrowserRouter([
       {
         element: <MainLayout titulo="Mi cuenta" />,
         children: [{ path: '/cuenta/contrasena', element: <CambioContrasena /> }],
-  },
+      },
     ],
   },
   {

@@ -1,13 +1,12 @@
 ﻿// Vista del cuidador enfermero: agenda de tomas del dia (pendientes y
 // atrasadas) y residentes a su cargo con el conteo de tomas abiertas, todo con
 // datos reales (endpoints de pacientes y tomas). La bitacora de signos vitales
-// aun no tiene endpoint, asi que se muestra como "proximamente" en lugar de
-// cifras de ejemplo.
+// no muestra cifras agregadas: solo enlaces por residente, porque el ultimo
+// registro se consulta por residente (una llamada por fila).
 
 import { useNavigate } from 'react-router-dom'
 import { Check, ChevronRight, Clock3, ClipboardList } from 'lucide-react'
 import { BotonAccion } from '@/components/ui/BotonAccion'
-import { EnConstruccion } from '@/components/ui/EnConstruccion'
 import { EstadoCarga } from '@/components/ui/EstadoCarga'
 import { EstadoError } from '@/components/ui/EstadoError'
 import { EstadoVacio } from '@/components/ui/EstadoVacio'
@@ -46,19 +45,86 @@ export function VistaCuidador() {
         alReintentar={() => void recargar()}
       />
       <ResidentesAsignados />
-      <section className="panel vitals-quick">
-        <div className="panel-header">
-          <div>
-            <h3>Bitacora de signos vitales</h3>
-            <p className="muted">Proximamente: disponible cuando exista el modulo de bitacora.</p>
-          </div>
-          <span className="kpi-icon kpi-blue">
-            <ClipboardList size={18} />
-          </span>
-        </div>
-        <EnConstruccion titulo="Bitacora" />
-      </section>
+      <BitacoraDelCuidador />
     </div>
+  )
+}
+
+/**
+ * Acceso a la bitacora de signos vitales de los residentes del cuidador.
+ * Muestra cuantos residentes tiene en su alcance (dato que ya trae la jornada,
+ * sin consultas extra) y un enlace por residente a su bitacora. NO pide el
+ * ultimo registro de cada uno: ese endpoint responde por residente, asi que
+ * seria una llamada por fila.
+ */
+function BitacoraDelCuidador() {
+  const navegar = useNavigate()
+  const { residentes, cargando, error, recargar } = useResidentesAsignados()
+
+  return (
+    <section className="panel vitals-quick">
+      <div className="panel-header">
+        <div>
+          <h3>Bitacora de signos vitales</h3>
+          <p className="muted">
+            {cargando
+              ? 'Cargando residentes...'
+              : `${residentes.length} ${residentes.length === 1 ? 'residente en tu alcance' : 'residentes en tu alcance'}`}
+          </p>
+        </div>
+        <span className="kpi-icon kpi-blue">
+          <ClipboardList size={18} />
+        </span>
+      </div>
+
+      {cargando && <EstadoCarga mensaje="Cargando residentes..." />}
+      {!cargando && error && (
+        <EstadoError
+          mensaje={error}
+          accion={
+            <BotonAccion variant="outline" onClick={() => void recargar()}>
+              Reintentar
+            </BotonAccion>
+          }
+        />
+      )}
+      {!cargando && !error && residentes.length === 0 && (
+        <EstadoVacio
+          titulo="Sin residentes en tu alcance"
+          descripcion="Cuando tengas residentes asignados podras registrar sus signos vitales."
+        />
+      )}
+      {!cargando && !error && residentes.length > 0 && (
+        <>
+          <ul className="task-list">
+            {residentes.map((residente) => (
+              <li key={residente.pacienteId} className="task-row">
+                <div className="task-copy">
+                  <strong>{residente.pacienteNombre}</strong>
+                  <span>
+                    {residente.habitacion ? `Hab. ${residente.habitacion}` : 'Sin habitacion'}
+                  </span>
+                  <small>Registrar o consultar sus signos vitales</small>
+                </div>
+                <button
+                  type="button"
+                  className="row-action"
+                  aria-label={`Abrir la bitacora de ${residente.pacienteNombre}`}
+                  onClick={() => navegar(`/residentes/${residente.pacienteId}/signos-vitales`)}
+                >
+                  <ChevronRight size={17} />
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="panel-footer">
+            <button type="button" className="text-link" onClick={() => navegar('/bitacora')}>
+              Ver todos los residentes <ChevronRight size={15} />
+            </button>
+          </div>
+        </>
+      )}
+    </section>
   )
 }
 
