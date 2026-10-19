@@ -295,3 +295,61 @@ Eventos auditados del modulo: `CREATE` de citas, `UPDATE` de citas (edicion y
 cambio de estado) y `READ` de citas (detalle y calendario); el intento sobre un
 residente fuera de alcance se audita como `READ` **DENEGADO** (via
 `VerificadorAlcanceResidente`).
+
+
+## 16. Alcance y reglas de la bitacora de signos vitales (Proceso 2)
+
+La bitacora reutiliza el alcance del modulo paciente a traves del mismo
+`VerificadorAlcanceResidente` y `PacienteAlcancePort` (no duplica la regla de
+visibilidad ni accede a las tablas del modulo paciente de forma directa). Antes
+de operar sobre un residente se resuelve su visibilidad con
+`VerificadorAlcanceResidente`:
+
+- `ADMINISTRADOR`: registra y lee signos vitales de cualquier residente existente.
+- `CUIDADOR_ENFERMERO`: registra y lee signos vitales solo de residentes con
+  **asignacion vigente**; no registra en residentes inactivos.
+- `FAMILIAR_AUTORIZADO`: solo lectura de residentes con **vinculacion
+  autorizada**. Nunca registra.
+
+Endpoints (todos requieren JWT valido):
+
+- `POST /api/pacientes/{pacienteId}/signos-vitales`: registrar (`ADMINISTRADOR` o
+  `CUIDADOR_ENFERMERO`). El autor (`registradoPor`) sale siempre del usuario
+  autenticado, nunca del cuerpo.
+- `GET /api/pacientes/{pacienteId}/signos-vitales[?desde][?hasta][?pagina][?tamano]`:
+  historial paginado (tamano acotado a 100), orden por fecha descendente; los tres
+  roles (lectura segun alcance).
+- `GET /api/pacientes/{pacienteId}/signos-vitales/ultimo`: registro mas reciente;
+  los tres roles (lectura segun alcance); **404** si el residente no tiene
+  ninguno.
+
+Reglas aplicadas:
+
+- El residente inexistente o fuera de alcance responde **404** (nunca 403); el
+  intento se audita como `READ` **DENEGADO** via `VerificadorAlcanceResidente`. En
+  el registro, un residente inactivo responde **409**.
+- El registro es **inmutable**: no hay endpoints de edicion ni de borrado; solo se
+  crea (`POST`). La entidad marca `creado_en` como no actualizable.
+- Se admite un subconjunto de signos (por ejemplo solo temperatura), pero al menos
+  uno es obligatorio (**400** si no llega ninguno).
+- **Rangos de plausibilidad** (replican exactamente los `CHECK` de V2 y solo
+  rechazan errores de digitacion, no clasifican el estado de salud):
+  sistolica 50-300 mmHg, diastolica 30-200 mmHg y estrictamente menor que la
+  sistolica (cuando ambas vienen), glucosa 20-800 mg/dL, temperatura 30.0-45.0
+  grados C. Un valor fuera de rango responde **400**.
+- La fecha de medicion es opcional: si falta se usa el reloj del servidor; si
+  llega, no puede ser futura (**400**).
+- El historial exige `desde <= hasta` cuando ambos llegan (**400**) y resuelve los
+  filtros opcionales con metodos de repositorio separados por combinacion, para no
+  enviar parametros nulos a PostgreSQL (misma tecnica que en paciente, medicacion y
+  cita).
+- La entidad mapea `presion_sistolica`, `presion_diastolica` y `glucosa_mg_dl`
+  como `SMALLINT` (`@JdbcTypeCode(SqlTypes.SMALLINT)`) para que la validacion de
+  esquema de Hibernate 6 coincida con V2.
+
+Eventos auditados del modulo: `CREATE` de registros (nunca con valores clinicos en
+el detalle) y `READ` (historial y ultimo registro); el intento sobre un residente
+fuera de alcance se audita como `READ` **DENEGADO**. Leer el historial de un
+residente visible se audita como `READ` **EXITOSO** aunque no tenga registros; en
+cambio, pedir el "ultimo registro" de un residente visible que no tiene ninguno
+responde **404** sin auditar `READ` (no hubo lectura de datos).

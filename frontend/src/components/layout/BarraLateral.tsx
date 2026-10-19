@@ -1,4 +1,4 @@
-﻿import { Bell, CalendarDays, ClipboardList, FileBarChart, LayoutDashboard, MoreHorizontal, Pill, Settings2, ShieldCheck, Users } from 'lucide-react'
+import { Bell, CalendarDays, ClipboardList, FileBarChart, LayoutDashboard, MoreHorizontal, Pill, Settings2, ShieldCheck, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { MarcaMediTrack } from '@/components/layout/MarcaMediTrack'
@@ -29,10 +29,12 @@ const NAVEGACION_CUIDADOR: ElementoNavegacion[] = [
   { etiqueta: 'Hoy', ruta: '/cuidador', icono: LayoutDashboard },
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
   { etiqueta: 'Medicamentos', ruta: '/medicamentos', icono: Pill },
+  { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
 ]
 
 const NAVEGACION_FAMILIAR: ElementoNavegacion[] = [
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
+  { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
 ]
 
 const NAVEGACION_POR_ROL: Record<RolUsuario, ElementoNavegacion[]> = {
