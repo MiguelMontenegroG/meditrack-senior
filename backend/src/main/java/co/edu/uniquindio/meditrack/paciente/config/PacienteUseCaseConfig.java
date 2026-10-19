@@ -32,7 +32,7 @@ public class PacienteUseCaseConfig {
 
     @Bean
     public Clock reloj() {
-        return Clock.systemDefaultZone();
+        return Clock.system(java.time.ZoneId.of("America/Bogota"));
     }
 
     @Bean
