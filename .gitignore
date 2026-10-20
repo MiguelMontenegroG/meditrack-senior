@@ -1,7 +1,6 @@
-# Contexto para agentes (no se sube)
 contexto/
 
-# Secretos (solo el ejemplo se sube)
+# Secretos
 .env
 .env.*
 !.env.example
