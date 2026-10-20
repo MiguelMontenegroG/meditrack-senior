@@ -1,11 +1,12 @@
-import { CalendarDays, ClipboardList, LayoutDashboard, Pill, Users } from 'lucide-react'
+import { CalendarDays, ClipboardList, LayoutDashboard, Pill, ShieldCheck, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { useAutenticacion } from '@/features/auth/useAutenticacion'
 import type { RolUsuario } from '@/features/auth/types'
 
-// Navegacion inferior para movil. Muestra solo las secciones principales y
-// respeta el area tactil minima de 44px en cada boton.
+// Navegacion inferior para movil. Muestra las mismas secciones principales que
+// la barra lateral segun el rol (hasta seis en administracion) y respeta el
+// area tactil minima de 44px en cada boton.
 
 interface ElementoNavegacion {
   etiqueta: string
@@ -17,13 +18,16 @@ const NAVEGACION_ADMIN: ElementoNavegacion[] = [
   { etiqueta: 'Panel', ruta: '/dashboard', icono: LayoutDashboard },
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
   { etiqueta: 'Medicamentos', ruta: '/medicamentos', icono: Pill },
+  { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
   { etiqueta: 'Bitacora', ruta: '/bitacora', icono: ClipboardList },
+  { etiqueta: 'Usuarios', ruta: '/usuarios', icono: ShieldCheck },
 ]
 
 const NAVEGACION_CUIDADOR: ElementoNavegacion[] = [
   { etiqueta: 'Hoy', ruta: '/cuidador', icono: LayoutDashboard },
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
   { etiqueta: 'Medicamentos', ruta: '/medicamentos', icono: Pill },
+  { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
   { etiqueta: 'Bitacora', ruta: '/bitacora', icono: ClipboardList },
 ]
 
