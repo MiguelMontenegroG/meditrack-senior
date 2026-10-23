@@ -1,5 +1,7 @@
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { Plus } from 'lucide-react'
+import { BotonAccion } from '@/components/ui/BotonAccion'
 import { useAutenticacion } from '@/features/auth/useAutenticacion'
 import { IndicadorKpi } from '@/features/dashboard/IndicadorKpi'
 import { PanelAlertas } from '@/features/dashboard/PanelAlertas'
@@ -33,6 +35,7 @@ function fechaDeHoy(): string {
 
 /** Panel principal para el rol ADMINISTRADOR. */
 export function PanelAdministrador() {
+  const navegar = useNavigate()
   const { usuario } = useAutenticacion()
   const primerNombre = usuario?.nombreCompleto?.trim().split(/\s+/)[0] ?? ''
   const fecha = useMemo(() => fechaDeHoy(), [])
@@ -118,6 +121,16 @@ export function PanelAdministrador() {
         Los indicadores se calculan con la agenda de hoy y el catalogo reales.{' '}
         <Link to="/residentes">Ver residentes</Link> · <Link to="/medicamentos">Ver medicamentos</Link>
       </p>
+
+      {/* En tablet y movil la tabla de residentes se oculta, asi que el alta
+          se ofrece aqui para no perder la accion principal. */}
+      <BotonAccion
+        variant="outline"
+        className="panel-alta-movil"
+        onClick={() => navegar('/residentes/nuevo')}
+      >
+        <Plus size={16} /> Registrar residente
+      </BotonAccion>
 
       <div className="dashboard-grid">
         <PanelAlertas tomasAbiertas={tomasAbiertas} cargando={cargando} />
