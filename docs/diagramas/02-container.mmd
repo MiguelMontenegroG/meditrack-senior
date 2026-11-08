@@ -1,50 +1,76 @@
-flowchart TB
-    subgraph Monorepo["Monorepo GitHub — meditrack-senior"]
-        direction LR
-        subgraph FE["frontend/"]
-            SPA["SPA estática<br/>Vite + React 19 + TS<br/>Tailwind CSS v4 · React Router 7<br/>AuthContext · api-client (fetch)"]
-        end
-        subgraph BE["backend/ — monolito modular por feature"]
-            direction TB
-            SEC["config/ Seguridad<br/>SecurityFilterChain · JWT filter<br/>BCrypt · @PreAuthorize · CORS"]
-            subgraph MODS["Módulos de dominio (hexagonal)"]
-                direction LR
-                M1["usuario"]
-                M2["paciente"]
-                M3["medicacion*"]
-                M4["cita*"]
-                M5["bitacora*"]
-                M6["alerta*"]
-                M7["reporte*"]
-                M8["dashboard*"]
-            end
-            APP["application/<br/>Casos de uso (POJOs)<br/>+ Puertos"]
-            INF["infrastructure/<br/>web: Controllers REST<br/>persistence: JPA + adaptadores"]
-            SCH["Scheduler<br/>reglas de alertas"]
-            AUD["shared/<br/>AuditoriaPort → auditoria_acceso"]
-        end
-        subgraph DOCS["docs/ · infra/ · .github/"]
-            D1["openapi.yaml · modelo-datos.md"]
-        end
-    end
+flowchart TD
+%% Título / Nota principal
+    Title["<b>SPA y API se despliegan por separado; solo el backend toca la base de datos</b>"]
+    style Title fill:none,stroke:none,font-size:16px,text-align:left
 
-    DB[("PostgreSQL 16<br/>16 tablas · Flyway V1–V3<br/>ddl-auto: validate")]
-    SWA(["Azure Static Web Apps"])
-    APPSVC(["Azure App Service (Docker)"])
+%% --- FRONTEND ---
+    SPA["<b>SPA · frontend/</b><br>React 19 · TypeScript 5.7 · Vite 6 · Tailwind 4<br>React Router 7 · AuthContext · api-client (fetch)"]
 
-    SPA -->|"HTTPS JSON /api/**<br/>Authorization: Bearer"| SEC
-    SEC --> MODS
-    MODS --> APP
-    APP --> INF
-    SCH --> M6
-    APP --> AUD
-    INF -->|"JDBC"| DB
-    SPA -. "despliegue" .-> SWA
-    BE -. "despliegue" .-> APPSVC
+    Vercel["<b>Vercel</b><br>despliegue de la SPA"]
+    style Vercel fill:#fff,stroke:#999,stroke-width:1.5px,stroke-dasharray: 5 5
 
-    classDef mod fill:#2a9daa,color:#fff;
-    classDef infra fill:#6b7f85,color:#fff;
-    classDef ext fill:#94a3ab,color:#fff;
-    class M1,M2,M3,M4,M5,M6,M7,M8 mod;
-    class SEC,APP,INF,SCH,AUD infra;
-    class DB ext;
+    SPA -.->|"despliegue"| Vercel
+
+%% --- BACKEND ---
+subgraph Backend["<b>API REST · backend/ (monolito modular hexagonal)</b><br>Java 21 · Spring Boot 3.4.1 · Spring Security · Spring Data JPA"]
+direction TB
+
+Config["config/ · SecurityFilterChain · filtro JWT · BCrypt · CORS"]
+
+subgraph Modulos[" "]
+direction LR
+M1["usuario"]:::implementado
+M2["paciente"]:::implementado
+M3["medicacion"]:::implementado
+M4["cita"]:::implementado
+M5["bitacora"]:::implementado
+
+M6["alerta"]:::pendiente
+M7["reporte"]:::pendiente
+M8["dashboard"]:::pendiente
+M9["pendientes (Proceso 3)"]:::pendiente
+end
+
+Shared["shared/ · AuditoriaPort · ApiError · PageResponse"]
+
+%% Conexiones internas
+Config --- Modulos
+Modulos --- Shared
+end
+
+%% Estilo del contenedor Backend
+style Backend fill:#f0f6ff,stroke:#2563eb,stroke-width:2px,color:#000
+style Modulos fill:none,stroke:none
+style Config fill:#fff,stroke:#ccc,stroke-width:1px
+style Shared fill:#fff,stroke:#ccc,stroke-width:1px
+
+%% Conexión Frontend -> Backend
+SPA -->|"HTTPS · JSON · /api/** · Authorization: Bearer"| Backend
+
+AppService["<b>Azure App Service</b><br>despliegue (Docker)"]
+style AppService fill:#fff,stroke:#999,stroke-width:1.5px,stroke-dasharray: 5 5
+
+Backend -.->|"despliegue"| AppService
+
+%% --- BASE DE DATOS ---
+DB["<b>PostgreSQL 16</b><br>16 tablas · Flyway V1 baseline, V2 modelo, V3 semilla<br>Hibernate en modo validate · docker-compose en local"]
+style DB fill:#fff,stroke:#333,stroke-width:1.5px
+
+Backend -->|"JDBC"| DB
+
+AzureDB["<b>Azure Database</b><br>for PostgreSQL (producción)"]
+style AzureDB fill:#fff,stroke:#999,stroke-width:1.5px,stroke-dasharray: 5 5
+
+DB -.-> AzureDB
+
+%% --- LEYENDA ---
+subgraph Leyenda["Leyenda"]
+direction LR
+L1["Implementado"]:::implementado
+L2["Pendiente"]:::pendiente
+end
+style Leyenda fill:none,stroke:none
+
+%% --- DEFINICIÓN DE CLASES ---
+classDef implementado fill:#fff,stroke:#333,stroke-width:1.5px,color:#333;
+classDef pendiente fill:#fff,stroke:#999,stroke-width:1.5px,stroke-dasharray: 5 5,color:#999;

@@ -12,3 +12,8 @@ springdoc:
     enabled: false
 meditrack:
   swagger-habilitado: false
+  # En pruebas la generacion automatica de alertas queda deshabilitada: no debe
+  # alterar los datos mientras corren las pruebas (se prueba el caso de uso con
+  # reloj fijo, no el scheduler).
+  alertas:
+    habilitado: false
