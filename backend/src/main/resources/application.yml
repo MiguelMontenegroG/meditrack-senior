@@ -49,3 +49,22 @@ springdoc:
 # Bandera usada por SecurityConfig para permitir Swagger sin JWT solo en dev.
 meditrack:
   swagger-habilitado: false
+
+  # Generacion automatica de alertas de seguimiento (Proceso 3).
+  # Los umbrales de signos vitales son valores de REFERENCIA para disparar una
+  # revision, no un diagnostico clinico.
+  alertas:
+    habilitado: true
+    intervalo-ms: 60000
+    tolerancia-toma-min: 30
+    tolerancia-cita-min: 60
+    ventana-signos-horas: 24
+    umbrales:
+      sistolica-min: 90
+      sistolica-max: 180
+      diastolica-min: 50
+      diastolica-max: 110
+      glucosa-min: 70
+      glucosa-max: 250
+      temperatura-min: 35.0
+      temperatura-max: 38.0
