@@ -260,8 +260,8 @@ Se agrupan por modulo. Cada requisito tiene un identificador
 | **RF-ALE-03** | La generacion automatica de alertas debe ser idempotente: una misma fuente no debe generar dos veces la misma alerta. | Sistema | Pendiente |
 | **RF-DAS-01** | El sistema debe mostrar un dashboard con los indicadores operativos y clinicos definidos en la seccion 7.1. | ADMINISTRADOR | Pendiente |
 | **RF-DAS-02** | El frontend puede mostrar un panel con los datos reales ya disponibles; lo que dependa de modulos inexistentes debe rotularse como pendiente y no inventar cifras. | ADMINISTRADOR | En construccion |
-| **RF-REP-01** | El sistema debe generar reportes clinicos en PDF (historia clinica, bitacora, medicacion y general) por residente y rango de fechas. | ADMINISTRADOR | Pendiente |
-| **RF-REP-02** | El sistema debe registrar los metadatos de cada reporte generado (tipo, rango, autor y fecha) sin almacenar el archivo en la base de datos. | Sistema | Pendiente |
+| **RF-REP-01** | El sistema debe generar reportes clinicos en PDF (historia clinica, bitacora, medicacion y general) por residente y rango de fechas. | ADMINISTRADOR | Implementado |
+| **RF-REP-02** | El sistema debe registrar los metadatos de cada reporte generado (tipo, rango, autor y fecha) sin almacenar el archivo en la base de datos. | Sistema | Implementado |
 
 ### 4.13 Trazabilidad y auditoria
 
@@ -509,7 +509,7 @@ pruebas automatizadas. Las rutas y contratos exactos estan en
 | **Bitacora** | RF-BIT-01..08 | `/api/pacientes/{id}/signos-vitales` (+ `/ultimo`) | `BitacoraUseCaseTest`, `BitacoraControllerTest`, `RepositoriosBitacoraTest`, `signosVitales.test.ts`, `FormularioSignosVitales.test.tsx`, `SelectorBitacora.test.tsx` |
 | **Alertas** (P3) | RF-ALE-01..03 | Por definir | Pendiente |
 | **Dashboard** (P3) | RF-DAS-01..02 | Por definir | `resumenOperativo.test.ts`, `PanelAdministrador.test.tsx` (parcial) |
-| **Reportes** (P3) | RF-REP-01..02 | Por definir | Pendiente |
+| **Reportes** (P3) | RF-REP-01..02 | `ReporteUseCaseTest`, `GeneradorPdfOpenPdfAdapterTest`, `RepositoriosReporteTest` | Implementado |
 | **Auditoria** | RF-AUD-01..03 | (interna, via `AuditoriaPort`) | Verificada por pruebas de casos de uso y de controladores |
 
 ---
@@ -526,7 +526,7 @@ pruebas automatizadas. Las rutas y contratos exactos estan en
 | `cita` | Implementado | Calendario paginado, agenda, edicion y cambio de estado. |
 | `bitacora` | Implementado | Registro, historial y ultimo registro de signos vitales. |
 | `alerta` | Pendiente | Solo estructura de carpetas. |
-| `reporte` | Pendiente | Solo estructura de carpetas. |
+| `reporte` | Implementado | Generacion de PDF (OpenPDF) e historial de metadatos. |
 | `dashboard` | Pendiente | Solo estructura de carpetas. |
 
 ### 9.2 Pantallas del frontend
