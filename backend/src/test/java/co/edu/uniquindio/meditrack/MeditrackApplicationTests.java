@@ -1,6 +1,8 @@
 package co.edu.uniquindio.meditrack;
 
 import co.edu.uniquindio.meditrack.alerta.infrastructure.persistence.AlertaJpaRepository;
+import co.edu.uniquindio.meditrack.reporte.infrastructure.persistence.DatosReporteJpaRepository;
+import co.edu.uniquindio.meditrack.reporte.infrastructure.persistence.ReporteGeneradoJpaRepository;
 import co.edu.uniquindio.meditrack.cita.infrastructure.persistence.CitaJpaRepository;
 import co.edu.uniquindio.meditrack.cita.infrastructure.persistence.EspecialidadJpaRepository;
 import co.edu.uniquindio.meditrack.bitacora.infrastructure.persistence.RegistroSignosVitalesJpaRepository;
@@ -88,6 +90,12 @@ class MeditrackApplicationTests {
     private RegistroSignosVitalesJpaRepository registroSignosVitalesJpaRepository;
     @MockitoBean
     private AlertaJpaRepository alertaJpaRepository;
+
+    @MockitoBean
+    private ReporteGeneradoJpaRepository reporteGeneradoJpaRepository;
+
+    @MockitoBean
+    private DatosReporteJpaRepository datosReporteJpaRepository;
 
     /**
      * Sin la autoconfiguracion de DataSource no hay fuente de datos: el modulo de

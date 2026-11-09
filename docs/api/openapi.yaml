@@ -38,6 +38,8 @@ tags:
     description: Calendario de citas medicas por rango, agendamiento, edicion y cambio de estado (lectura segun alcance)
   - name: Bitacora de signos vitales
     description: Registro diario e historial de signos vitales de un residente (presion, glucosa, temperatura)
+  - name: Reportes
+    description: Generacion y descarga de reportes clinicos en PDF de un residente e historial de reportes (lectura segun alcance; el PDF no se almacena)
 
 paths:
   /api/auth/login:
@@ -1796,6 +1798,131 @@ paths:
                 $ref: '#/components/schemas/ApiError'
 
 
+  /api/pacientes/{pacienteId}/reportes:
+    get:
+      tags: [Reportes]
+      summary: Historial paginado de reportes generados de un residente (lectura segun alcance)
+      description: >-
+        Devuelve los metadatos de los reportes generados para el residente, orden
+        por fecha de creacion descendente. Los tres roles pueden leer, pero solo
+        de residentes dentro del alcance del usuario (404 si no es visible). Cada
+        elemento solo contiene metadatos: el PDF no se almacena y se entrega al
+        generarlo.
+      parameters:
+        - $ref: '#/components/parameters/PacienteId'
+        - name: pagina
+          in: query
+          required: false
+          description: Numero de pagina (base 0)
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: tamano
+          in: query
+          required: false
+          description: Tamano de pagina (1-100; por encima de 100 se acota a 100)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Pagina del historial de reportes dentro del alcance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginaReportes'
+        '400':
+          description: VALIDACION - parametros de paginacion invalidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: El residente no existe o esta fuera del alcance del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/pacientes/{pacienteId}/reportes/{tipo}.pdf:
+    get:
+      tags: [Reportes]
+      summary: Genera y descarga un reporte clinico en PDF (lectura segun alcance)
+      description: >-
+        Genera en el momento el PDF del reporte del residente para el rango de
+        fechas indicado y lo devuelve como descarga (application/pdf, adjunto).
+        Los tres roles pueden generar reportes (es una lectura agregada, no
+        modifica datos clinicos), pero solo de residentes dentro del alcance del
+        usuario (404 si no es visible). El autor (generadoPor) sale del usuario
+        autenticado. El rango es obligatorio y no puede superar los 366 dias. La
+        generacion exitosa registra un reporte en el historial (reporte_generado)
+        y audita un CREATE; el PDF no se almacena en el servidor.
+      parameters:
+        - $ref: '#/components/parameters/PacienteId'
+        - name: tipo
+          in: path
+          required: true
+          description: Tipo de reporte a generar
+          schema:
+            $ref: '#/components/schemas/TipoReporte'
+        - name: desde
+          in: query
+          required: true
+          description: Inicio del rango (incluido), en ISO-8601 UTC
+          schema:
+            type: string
+            format: date-time
+        - name: hasta
+          in: query
+          required: true
+          description: Fin del rango (incluido), en ISO-8601 UTC
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: PDF del reporte
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: >-
+            VALIDACION - tipo de reporte desconocido, faltan fechas o la fecha
+            desde es posterior a hasta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Falta un token valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: El residente no existe o esta fuera del alcance del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: El rango del reporte supera el maximo permitido (366 dias)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1844,6 +1971,54 @@ components:
     RolNombre:
       type: string
       enum: [ADMINISTRADOR, CUIDADOR_ENFERMERO, FAMILIAR_AUTORIZADO]
+
+    TipoReporte:
+      type: string
+      description: Tipo de reporte clinico generable.
+      enum: [HISTORIA_CLINICA, BITACORA, MEDICACION, GENERAL]
+
+    ReporteGeneradoResumen:
+      type: object
+      description: Metadatos de un reporte generado (sin el PDF, que no se almacena).
+      properties:
+        id:
+          type: integer
+          format: int64
+        pacienteId:
+          type: integer
+          format: int64
+        generadoPor:
+          type: integer
+          format: int64
+        tipo:
+          $ref: '#/components/schemas/TipoReporte'
+        rangoDesde:
+          type: string
+          format: date-time
+        rangoHasta:
+          type: string
+          format: date-time
+        creadoEn:
+          type: string
+          format: date-time
+
+    PaginaReportes:
+      type: object
+      description: Pagina del historial de reportes generados (contenido y total por el mismo filtro).
+      properties:
+        contenido:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReporteGeneradoResumen'
+        pagina:
+          type: integer
+        tamano:
+          type: integer
+        total:
+          type: integer
+          format: int64
+        totalPaginas:
+          type: integer
 
     LoginRequest:
       type: object

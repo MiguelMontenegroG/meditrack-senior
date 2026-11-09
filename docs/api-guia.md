@@ -1,4 +1,4 @@
-﻿# Guia tecnica de la API - MediTrack Senior
+# Guia tecnica de la API - MediTrack Senior
 
 Documentacion detallada de la API REST del backend de **MediTrack Senior**.
 Explica que es la API, como esta construida, como autenticarse, como se
@@ -35,6 +35,7 @@ cada endpoint, con ejemplos reales contrastados contra el codigo fuente
     - [8.11 Bitacora de signos vitales](#811-bitacora-de-signos-vitales)
     - [8.12 Especialidades](#812-especialidades)
     - [8.13 Salud del servicio](#813-salud-del-servicio)
+    - [8.14 Reportes clinicos en PDF](#814-reportes-clinicos-en-pdf)
 9. [Enumeraciones y modelos de datos](#9-enumeraciones-y-modelos-de-datos)
 10. [Reglas de negocio transversales](#10-reglas-de-negocio-transversales)
 11. [Como probar la API](#11-como-probar-la-api)
@@ -351,6 +352,7 @@ simplemente no aparece (no se revela su existencia).
 | Citas | `/api/citas`, `/api/pacientes/{pacienteId}/citas` | `cita` |
 | Signos vitales | `/api/pacientes/{pacienteId}/signos-vitales` | `bitacora` |
 | Especialidades | `/api/especialidades` | `cita` |
+| Reportes | `/api/pacientes/{pacienteId}/reportes` | `reporte` |
 | Salud | `/actuator/health` | transversal |
 
 ---
@@ -959,6 +961,65 @@ Estados de slot posibles: `PENDIENTE`, `ATRASADA`, `ADMINISTRADA`, `OMITIDA`.
 { "status": "UP" }
 ```
 
+### 8.14 Reportes clinicos en PDF
+
+Permiten obtener un PDF de la historia del residente para un rango de fechas.
+Los tres roles pueden generar reportes (es una lectura agregada), pero solo de
+residentes dentro de su alcance; un residente inexistente o fuera de alcance
+responde `404`. El autor del reporte (`generadoPor`) sale del usuario
+autenticado. El PDF no se almacena en el servidor: se genera en la peticion y se
+entrega como adjunto. Cada generacion exitosa se registra en el historial
+(`reporte_generado`) y audita un `CREATE`.
+
+- **Restriccion de rango:** `desde` y `hasta` son obligatorios, `desde <= hasta`
+  (`400` si no) y el rango no puede superar los `366` dias (`409` si lo supera).
+- **Tipos:** `HISTORIA_CLINICA` (resumen + medicacion + citas + bitacora),
+  `MEDICACION` (resumen + esquemas), `BITACORA` (resumen + signos vitales +
+  citas) y `GENERAL` (resumen + alertas del periodo).
+
+#### GET /api/pacientes/{pacienteId}/reportes
+
+- **Roles:** `ADMINISTRADOR`, `CUIDADOR_ENFERMERO`, `FAMILIAR_AUTORIZADO` (lectura segun alcance).
+- **Query:** `pagina` (base 0), `tamano` (1-100).
+- **Respuesta `200 OK`:** `PaginaReportes` con los metadatos de los reportes,
+  mas reciente primero.
+
+```json
+{
+  "contenido": [
+    {
+      "id": 15,
+      "pacienteId": 4,
+      "generadoPor": 2,
+      "tipo": "HISTORIA_CLINICA",
+      "rangoDesde": "2026-02-01T00:00:00Z",
+      "rangoHasta": "2026-02-28T23:59:59Z",
+      "creadoEn": "2026-02-10T15:00:00Z"
+    }
+  ],
+  "pagina": 0,
+  "tamano": 20,
+  "total": 1,
+  "totalPaginas": 1
+}
+```
+
+#### GET /api/pacientes/{pacienteId}/reportes/{tipo}.pdf
+
+- **Roles:** `ADMINISTRADOR`, `CUIDADOR_ENFERMERO`, `FAMILIAR_AUTORIZADO` (lectura segun alcance).
+- **Path:** `tipo` = `HISTORIA_CLINICA`, `BITACORA`, `MEDICACION` o `GENERAL`.
+- **Query:** `desde` y `hasta` (ISO-8601), obligatorios.
+- **Respuesta `200 OK`:** `application/pdf` como adjunto
+  (`Content-Disposition: attachment; filename="<tipo>-<epoch>.pdf"`).
+- **Errores:** `400` tipo desconocido / fechas faltantes / `desde` posterior a
+  `hasta`; `404` residente no visible; `409` rango mayor de 366 dias.
+
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "$API/api/pacientes/4/reportes?desde=2026-02-01T00:00:00Z&hasta=2026-02-28T23:59:59Z" \
+  -o reportes-4.pdf
+```
+
 ---
 
 ## 9. Enumeraciones y modelos de datos
@@ -972,6 +1033,7 @@ Estados de slot posibles: `PENDIENTE`, `ATRASADA`, `ADMINISTRADA`, `OMITIDA`.
 | `EstadoCita` | `PROGRAMADA`, `CUMPLIDA`, `INCUMPLIDA`, `CANCELADA`, `REPROGRAMADA` | Estado de cita |
 | `EstadoToma` | `ADMINISTRADA`, `OMITIDA` | Estado de una toma registrada |
 | `ViaAdministracion` | `ORAL`, `SUBCUTANEA`, `INTRAMUSCULAR`, `TOPICA`, `OTRA` | Via de un esquema |
+| `TipoReporte` | `HISTORIA_CLINICA`, `BITACORA`, `MEDICACION`, `GENERAL` | Tipo de reporte PDF |
 
 Estados calculados (no persistidos) de un slot de agenda: `PENDIENTE`,
 `ATRASADA`, `ADMINISTRADA`, `OMITIDA`.
@@ -993,6 +1055,7 @@ Estados calculados (no persistidos) de un slot de agenda: `PENDIENTE`,
 | `RegistroTomaResponse` | historial/registro | `esquemaId`, `registradoPor`, `estado` |
 | `CitaResponse` | citas | `especialidadNombre`, `profesional`, `fechaHora`, `estado` |
 | `SignosVitalesResponse` | bitacora | `registradoPor`, signos, `observaciones` |
+| `ReporteResponse` | historial de reportes | `id`, `tipo`, `rangoDesde`, `rangoHasta`, `creadoEn` |
 | `PageResponse<T>` | listados paginados | `contenido`, `pagina`, `tamano`, `total`, `totalPaginas` |
 | `ApiError` | errores | `timestamp`, `status`, `codigo`, `mensaje`, `detalles` |
 
@@ -1078,6 +1141,7 @@ curl -X POST http://localhost:8080/api/pacientes/3/signos-vitales \
 | Medicacion | Completos | Implementados | Implementado | Tomas y esquemas |
 | Citas | Completos | Implementados | Implementado | Citas |
 | Bitacora | Completos | Implementados | Implementado | Registros |
+| Reportes | Completos (PDF) | Implementados | Implementado | Generacion e historial |
 
 > El detalle de la capa de seguridad (JWT, BCrypt, filtros, CORS, auditoria)
 > esta en `docs/seguridad.md`. El modelo de datos (tablas, CHECK y relaciones)
