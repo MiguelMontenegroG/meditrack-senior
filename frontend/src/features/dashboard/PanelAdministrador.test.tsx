@@ -1,15 +1,16 @@
 // Pruebas del panel de administrador: todos los KPI salen de los servicios
-// reales (residentes, medicamentos y agenda) y la fecha del saludo es la del
-// dia. Se verifica tambien el estado de error.
+// reales (residentes, agenda de tomas y alertas) y la fecha del saludo es la
+// del dia. Se verifica tambien el estado de error.
 
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PanelAdministrador } from '@/features/dashboard/PanelAdministrador'
 import * as pacienteService from '@/features/pacientes/services/pacienteService'
-import * as medicamentoService from '@/features/medicacion/services/medicamentoService'
 import * as tomaService from '@/features/medicacion/services/tomaService'
+import * as medicamentoService from '@/features/medicacion/services/medicamentoService'
 import * as citaService from '@/features/citas/services/citaService'
+import * as alertaService from '@/features/alertas/services/alertaService'
 import type { AgendaEsquema } from '@/features/medicacion/types'
 
 vi.mock('@/features/auth/useAutenticacion', () => ({
@@ -45,7 +46,7 @@ describe('PanelAdministrador', () => {
     vi.spyOn(citaService, 'listarCitas').mockResolvedValue(PAGINA_CITAS_VACIA)
   })
 
-  it('muestra los contadores reales de residentes y medicamentos', async () => {
+  it('muestra los contadores reales de residentes y alertas', async () => {
     vi.spyOn(pacienteService, 'listarPacientes').mockResolvedValue({
       contenido: [
         { id: 1, nombreCompleto: 'Rosa Gutierrez', edad: 82, habitacion: '204', activo: true },
@@ -55,12 +56,20 @@ describe('PanelAdministrador', () => {
       total: 7,
       totalPaginas: 1,
     })
+    // El contador de alertas activas usa el `total` de la pagina.
     vi.spyOn(medicamentoService, 'listarMedicamentos').mockResolvedValue({
       contenido: [],
       pagina: 0,
       tamano: 1,
-      total: 12,
-      totalPaginas: 12,
+      total: 0,
+      totalPaginas: 0,
+    })
+    vi.spyOn(alertaService, 'listarAlertas').mockResolvedValue({
+      contenido: [],
+      pagina: 0,
+      tamano: 1,
+      total: 3,
+      totalPaginas: 3,
     })
     vi.spyOn(tomaService, 'obtenerAgenda').mockResolvedValue(AGENDA)
 
@@ -68,7 +77,7 @@ describe('PanelAdministrador', () => {
 
     await waitFor(() => expect(screen.getByText('Residentes activos')).toBeInTheDocument())
     expect(await screen.findByText('7')).toBeInTheDocument()
-    expect(await screen.findByText('12')).toBeInTheDocument()
+    expect(await screen.findByText('3')).toBeInTheDocument()
     // Una toma cerrada de dos programadas.
     expect(await screen.findByText('50%')).toBeInTheDocument()
   })
@@ -82,6 +91,13 @@ describe('PanelAdministrador', () => {
       totalPaginas: 0,
     })
     vi.spyOn(medicamentoService, 'listarMedicamentos').mockResolvedValue({
+      contenido: [],
+      pagina: 0,
+      tamano: 1,
+      total: 0,
+      totalPaginas: 0,
+    })
+    vi.spyOn(alertaService, 'listarAlertas').mockResolvedValue({
       contenido: [],
       pagina: 0,
       tamano: 1,
@@ -107,6 +123,13 @@ describe('PanelAdministrador', () => {
       mensajeUsuario: 'No pudimos conectar con el servidor. Verifica tu conexion e intentalo de nuevo.',
     })
     vi.spyOn(medicamentoService, 'listarMedicamentos').mockResolvedValue({
+      contenido: [],
+      pagina: 0,
+      tamano: 1,
+      total: 0,
+      totalPaginas: 0,
+    })
+    vi.spyOn(alertaService, 'listarAlertas').mockResolvedValue({
       contenido: [],
       pagina: 0,
       tamano: 1,

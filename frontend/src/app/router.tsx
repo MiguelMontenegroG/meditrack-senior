@@ -1,9 +1,10 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
-import { EnConstruccion } from '@/components/ui/EnConstruccion'
 import { RutaLogin } from '@/app/RutaLogin'
 import { RutaProtegida } from '@/features/auth/guards/RutaProtegida'
 import { CambioContrasena } from '@/features/auth/CambioContrasena'
 import { PanelAdministrador } from '@/features/dashboard/PanelAdministrador'
+import { ListadoAlertas } from '@/features/alertas/ListadoAlertas'
+import { GeneradorReportes } from '@/features/reportes/GeneradorReportes'
 import { Calendario } from '@/features/citas/Calendario'
 import { FormularioCita } from '@/features/citas/FormularioCita'
 import { VistaCuidador } from '@/features/cuidador/VistaCuidador'
@@ -24,9 +25,9 @@ import { MainLayout } from '@/layouts/MainLayout'
 // Router real de la aplicacion. Rutas publicas para login; rutas protegidas
 // por rol. Los residentes son transversales: la escritura (nuevo/editar) queda
 // en un bloque solo para ADMINISTRADOR y la lectura segun alcance en otro.
-// El calendario de citas y el selector de bitacora son de lectura para los tres
-// roles (el backend filtra el alcance); agendar citas y registrar signos
-// vitales siguen limitados por rol en sus propias rutas.
+// El calendario de citas, el selector de bitacora, las alertas y los reportes
+// son de lectura/generacion para los tres roles (el backend filtra el alcance);
+// agendar citas y registrar signos vitales siguen limitados por rol.
 export const router = createBrowserRouter([
   {
     element: <AuthLayout />,
@@ -74,8 +75,7 @@ export const router = createBrowserRouter([
     ],
   },
   // Selector de bitacora: los tres roles eligen un residente de su alcance y
-  // abren su bitacora. No se piden los ultimos signos de cada residente (ver el
-  // comentario de SelectorBitacora: seria una llamada por fila).
+  // abren su bitacora.
   {
     element: <RutaProtegida />,
     children: [
@@ -85,16 +85,32 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  // Alertas: lectura para los tres roles (atender se valida por rol en la UI).
+  {
+    element: <RutaProtegida />,
+    children: [
+      {
+        element: <MainLayout titulo="Alertas" />,
+        children: [{ path: '/alertas', element: <ListadoAlertas /> }],
+      },
+    ],
+  },
+  // Reportes: generacion en PDF para los tres roles (alcance del backend).
+  {
+    element: <RutaProtegida />,
+    children: [
+      {
+        element: <MainLayout titulo="Reportes" />,
+        children: [{ path: '/reportes', element: <GeneradorReportes /> }],
+      },
+    ],
+  },
   {
     element: <RutaProtegida rolesPermitidos={['ADMINISTRADOR']} />,
     children: [
       {
         element: <MainLayout titulo="Panel" />,
-        children: [
-          { path: '/dashboard', element: <PanelAdministrador /> },
-          { path: '/alertas', element: <EnConstruccion titulo="Alertas" /> },
-          { path: '/reportes', element: <EnConstruccion titulo="Reportes" /> },
-        ],
+        children: [{ path: '/dashboard', element: <PanelAdministrador /> }],
       },
       {
         element: <MainLayout titulo="Usuarios" />,
@@ -129,8 +145,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  // Escritura de citas: agendar y editar, solo ADMINISTRADOR. La lectura del
-  // calendario la cubre la ruta /calendario, abierta a los tres roles.
+  // Escritura de citas: agendar y editar, solo ADMINISTRADOR.
   {
     element: <RutaProtegida rolesPermitidos={['ADMINISTRADOR']} />,
     children: [
