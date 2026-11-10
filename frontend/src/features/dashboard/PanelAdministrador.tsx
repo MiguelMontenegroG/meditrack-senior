@@ -1,21 +1,21 @@
 import { useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { Bell, ChartColumnBig, Plus } from 'lucide-react'
 import { BotonAccion } from '@/components/ui/BotonAccion'
 import { useAutenticacion } from '@/features/auth/useAutenticacion'
-import { EnConstruccion } from '@/components/ui/EnConstruccion'
 import { IndicadorKpi } from '@/features/dashboard/IndicadorKpi'
 import { PanelAlertas } from '@/features/dashboard/PanelAlertas'
 import { PanelCumplimiento } from '@/features/dashboard/PanelCumplimiento'
 import { TablaResidentes } from '@/features/dashboard/TablaResidentes'
 import { PanelProximasCitas } from '@/features/dashboard/PanelProximasCitas'
 import { useResumenOperativo } from '@/features/dashboard/useResumenOperativo'
+import { useContadorAlertas } from '@/features/alertas/useContadorAlertas'
 import type { IndicadorKpiDatos } from '@/features/dashboard/types'
 
-// Pantalla del panel de administrador. Todos los KPI salen de endpoints reales
-// (residentes, medicamentos y agenda de tomas); lo que depende de modulos
-// inexistentes (citas, bitacora, reportes) se muestra como "en construccion"
-// en lugar de cifras de ejemplo.
+// Pantalla del panel de administrador. Los KPI salen de endpoints reales
+// (residentes, medicamentos, agenda de tomas y alertas); no se muestran cifras
+// de ejemplo. Las secciones de bitacora, alertas y reportes tienen sus propias
+// pantallas: aqui solo se enlazan.
 
 /** Saludo segun la hora del dia del navegador. */
 function saludoDelDia(): string {
@@ -44,7 +44,6 @@ export function PanelAdministrador() {
   const {
     resumen,
     totalResidentes,
-    totalMedicamentos,
     avance,
     serie,
     tomasAbiertas,
@@ -52,9 +51,11 @@ export function PanelAdministrador() {
     error,
     recargar,
   } = useResumenOperativo()
+  // Contador real de alertas activas del sistema (una sola llamada).
+  const { total: alertasActivas, error: errorAlertas } = useContadorAlertas(true)
 
-  // Los cuatro KPI usan solo datos que existen hoy. Sin serie historica no se
-  // dibuja tendencia ni se inventa una variacion.
+  // Los KPI usan solo datos que existen hoy. Sin serie historica no se dibuja
+  // tendencia ni se inventa una variacion.
   const indicadores: IndicadorKpiDatos[] = [
     {
       etiqueta: 'Medicacion de hoy',
@@ -75,19 +76,19 @@ export function PanelAdministrador() {
       serie: [],
     },
     {
+      etiqueta: 'Alertas activas',
+      valor: errorAlertas ? '--' : String(alertasActivas),
+      detalle: 'sin atender',
+      tendencia: '',
+      tono: 'blue',
+      serie: [],
+    },
+    {
       etiqueta: 'Residentes activos',
       valor: cargando ? '--' : String(totalResidentes),
       detalle: 'en el centro',
       tendencia: '',
       tono: 'green',
-      serie: [],
-    },
-    {
-      etiqueta: 'Medicamentos',
-      valor: cargando ? '--' : String(totalMedicamentos),
-      detalle: 'activos en el catalogo',
-      tendencia: '',
-      tono: 'blue',
       serie: [],
     },
   ]
@@ -120,7 +121,7 @@ export function PanelAdministrador() {
         ))}
       </div>
       <p className="muted nota-datos">
-        Los indicadores se calculan con la agenda de hoy y el catalogo reales.{' '}
+        Los indicadores se calculan con la agenda de hoy, el catalogo y las alertas reales.{' '}
         <Link to="/residentes">Ver residentes</Link> · <Link to="/medicamentos">Ver medicamentos</Link>
       </p>
 
@@ -143,7 +144,24 @@ export function PanelAdministrador() {
 
       <TablaResidentes />
 
-      <EnConstruccion titulo="Bitacora, alertas y reportes" />
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <h3>Alertas y reportes</h3>
+            <p className="muted">
+              Revisa las alertas del sistema y genera los reportes clinicos en PDF.
+            </p>
+          </div>
+        </div>
+        <div className="panel-footer acceso-paneles">
+          <Link className="btn btn-outline" to="/alertas">
+            <Bell size={16} /> Ver alertas
+          </Link>
+          <Link className="btn btn-outline" to="/reportes">
+            <ChartColumnBig size={16} /> Generar reportes
+          </Link>
+        </div>
+      </section>
     </div>
   )
 }

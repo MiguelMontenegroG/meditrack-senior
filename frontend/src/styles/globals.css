@@ -337,3 +337,35 @@ a.tarjeta-residente:hover{background:#faf9f6}
   .enlace-bitacora{width:100%;justify-content:center}
   .tabla-signos .celda-motivo{max-width:none}
 }
+/* ---------------------------------------------------------------- */
+/* Alertas y reportes (Fase Alertas/Reportes). */
+/* Contenedor de filtros en linea (estado/tipo, residente/tipo). */
+.filtros-listado{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;margin-bottom:18px}
+.filtros-listado label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700;color:#1e2b2f;min-width:180px}
+.filtros-listado select{display:block;width:100%;min-height:44px;border:1px solid #c7c1b5;border-radius:6px;padding:0 13px;background:#fff;color:#1e2b2f;font-size:16px}
+.filtros-listado select:focus-visible{border-color:#0e5a64;outline:2px solid #0e5a64;outline-offset:2px}
+/* Panel con cuerpo interior (formularios dentro de paneles). */
+.panel-body{padding:4px 20px 20px}
+/* Acciones rapidas del panel (alertas/reportes) alineadas en fila. */
+.acceso-paneles{display:flex;flex-wrap:wrap;gap:10px}
+/* Lista de tarjetas de alerta (movil). */
+.lista-tarjetas-alertas{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.tarjeta-alerta{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.tarjeta-alerta-cabecera{display:flex;align-items:flex-start;gap:11px}
+.tarjeta-alerta-meta{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.tarjeta-alerta-meta time{font-size:12px;color:#718084}
+.tarjeta-alerta-accion{min-height:44px;width:100%}
+/* Tablas de alertas y reportes: columnas legibles y texto que no desborda. */
+.tabla-alertas,.tabla-reportes{width:100%;border-collapse:collapse}
+.tabla-alertas th,.tabla-alertas td,.tabla-reportes th,.tabla-reportes td{text-align:left;padding:12px 14px;border-bottom:1px solid #eeeae3;vertical-align:middle;font-size:14px}
+.tabla-alertas thead th,.tabla-reportes thead th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#718084}
+.tabla-alertas td .btn{min-height:38px;padding:0 12px}
+.tabla-alertas tbody tr:hover,.tabla-reportes tbody tr:hover{background:#faf8f4}
+/* Formulario de reportes dentro del panel. */
+.formulario-reporte{display:flex;flex-direction:column;gap:14px}
+.formulario-reporte .filtros-listado{margin-bottom:0}
+@media(max-width:767px){
+  .filtros-listado label{min-width:0;width:100%}
+  .panel-body{padding:4px 14px 16px}
+  .acceso-paneles .btn{width:100%}
+}
