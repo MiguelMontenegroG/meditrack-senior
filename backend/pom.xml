@@ -25,6 +25,11 @@
              LGPL 2.1 / MPL 2.0 (iText 7 es AGPL). Target Java 21, compatible
              con Spring Boot 3.4.1. Publicada el 2026-05-22. -->
         <openpdf.version>3.0.5</openpdf.version>
+        <!-- JaCoCo 0.8.16: cobertura de pruebas. Version estable publicada el
+             2026-10-26 (mas de dos semanas de antiguedad) y compatible con Java
+             21 (soporte de class files 21 desde 0.8.11). Plugin oficial de la
+             Eclipse Foundation; no agrega nada al artefacto final. -->
+        <jacoco.version>0.8.16</jacoco.version>
     </properties>
 
     <dependencies>
@@ -175,6 +180,54 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+
+            <!-- JaCoCo (org.jacoco:jacoco-maven-plugin ${jacoco.version}).
+                 prepare-agent instrumenta la JVM de pruebas (via argLine) y
+                 report, en la fase verify, genera los informes que consume
+                 Sonar: target/site/jacoco/jacoco.xml. Se excluyen clases sin
+                 logica propia para que la cifra refleje codigo realmente
+                 probable:
+                 - la clase principal (MeditrackApplication): solo main().
+                 - *Request / *Response: DTOs de entrada/salida sin logica.
+                 - config/**: wiring de Spring (cableado de beans, seguridad,
+                   propiedades); se ejercita al levantar el contexto, no con
+                   pruebas unitarias directas.
+                 - *Entity: mapeo JPA (getters/setters generados por Lombok). -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/MeditrackApplication.class</exclude>
+                        <exclude>**/*Request.class</exclude>
+                        <exclude>**/*Response.class</exclude>
+                        <exclude>**/config/**</exclude>
+                        <exclude>**/*Entity.class</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <formats>
+                                <format>XML</format>
+                                <format>HTML</format>
+                            </formats>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

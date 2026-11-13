@@ -1,0 +1,72 @@
+name: Frontend CI
+
+# Lint, pruebas con cobertura y build del frontend (Vite + React + Vitest).
+on:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  push:
+    branches: [develop, main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+permissions:
+  contents: read
+
+# Cancela ejecuciones obsoletas del mismo workflow sobre la misma rama.
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Verificar y cubrir (frontend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      # Node 22 LTS: cumple el rango de Vite 6 (>=18) y TypeScript 5.7.
+      - name: Configurar Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias (npm ci)
+        run: npm ci
+        working-directory: frontend
+
+      - name: Lint
+        run: npm run lint
+        working-directory: frontend
+
+      # URL ficticia: el build no debe apuntar a un backend real.
+      - name: Pruebas con cobertura
+        run: npm run test:coverage
+        working-directory: frontend
+        env:
+          VITE_API_URL: http://localhost:8080/api
+
+      - name: Build
+        run: npm run build
+        working-directory: frontend
+        env:
+          VITE_API_URL: http://localhost:8080/api
+
+      - name: Subir informe de cobertura (lcov)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-frontend
+          path: |
+            frontend/coverage/lcov.info
+            frontend/coverage/
+          retention-days: 7
+          if-no-files-found: warn

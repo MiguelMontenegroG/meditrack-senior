@@ -16,6 +16,10 @@ node_modules/
 dist/
 frontend/dist/
 
+# Cobertura de pruebas (generada localmente y en CI)
+coverage/
+frontend/coverage/
+
 # IDEs y sistema
 .idea/
 .vscode/
