@@ -1,0 +1,58 @@
+name: Backend CI
+
+# Pruebas y cobertura del backend (Java 21 + Maven + Testcontainers).
+on:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  push:
+    branches: [develop, main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+permissions:
+  contents: read
+
+# Cancela ejecuciones obsoletas del mismo workflow sobre la misma rama.
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Verificar y cubrir (backend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # Valores ficticios, solo validos en pruebas. En produccion llegan por
+      # variables de entorno gestionadas fuera del repositorio.
+      - name: Ejecutar pruebas (mvn verify)
+        run: mvn -B verify
+        working-directory: backend
+        env:
+          JWT_SECRET: clave-ficticia-de-ci-con-mas-de-32-bytes-para-hs256
+          JWT_EXPIRATION_MINUTES: '60'
+          CORS_ALLOWED_ORIGINS: http://localhost:5173
+
+      - name: Subir informe de cobertura (JaCoCo)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-backend
+          path: backend/target/site/jacoco/
+          retention-days: 7
+          if-no-files-found: warn
