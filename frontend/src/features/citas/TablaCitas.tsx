@@ -24,7 +24,7 @@ export function TablaCitas({
   alCambiarEstado,
 }: PropsTablaCitas) {
   return (
-    <table className="tabla-citas">
+    <table className="tabla-citas tabla-listado-citas">
       <thead>
         <tr>
           <th scope="col">Hora</th>

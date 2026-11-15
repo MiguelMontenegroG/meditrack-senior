@@ -69,12 +69,17 @@ export function ProveedorAutenticacion({ children }: { children: ReactNode }) {
 
   // Restauracion de sesion al cargar la app: si hay token guardado, se
   // valida contra GET /api/auth/me; si falla, se limpia todo.
+  //
+  // El token se entrega al api-client ANTES de llamar a /auth/me: si se espera
+  // al efecto que depende de `token`, la peticion sale sin Authorization y el
+  // backend responde 401, cerrando la sesion valida al recargar la pagina.
   useEffect(() => {
     const sesion = leerSesion()
     if (!sesion) {
       setCargando(false)
       return
     }
+    registrarToken(() => sesion.token)
     obtenerUsuarioActual()
       .then((usuarioActual) => {
         setUsuario(usuarioActual)

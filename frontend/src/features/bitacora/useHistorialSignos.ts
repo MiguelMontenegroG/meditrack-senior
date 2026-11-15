@@ -30,10 +30,12 @@ interface EstadoHistorial {
  * ultimo dia elegido, igual que el calendario de citas.
  */
 function rangoUtc(desde: string, hasta: string): { desde?: string; hasta?: string } {
-  return {
-    desde: aInstanteUtc(desde, '00:00') ?? undefined,
-    hasta: aInstanteUtc(sumarDias(hasta, 1), '00:00') ?? undefined,
-  }
+  // Cada extremo vacio significa "sin limite por ese lado". No se debe llamar
+  // a sumarDias con una fecha vacia: produciria una fecha invalida (1900-01-01)
+  // y el historial quedaria limitado a un rango imposible.
+  const desdeUtc = desde ? aInstanteUtc(desde, '00:00') ?? undefined : undefined
+  const hastaUtc = hasta ? aInstanteUtc(sumarDias(hasta, 1), '00:00') ?? undefined : undefined
+  return { desde: desdeUtc, hasta: hastaUtc }
 }
 
 /** Historial paginado de signos vitales del residente. */

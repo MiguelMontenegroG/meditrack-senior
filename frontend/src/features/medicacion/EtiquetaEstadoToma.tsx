@@ -21,11 +21,13 @@ const TEXTO_SLOT: Record<EstadoSlotToma, string> = {
 const TONO_TOMA: Record<EstadoToma, TonoEstado> = {
   ADMINISTRADA: 'success',
   OMITIDA: 'neutral',
+  NO_ADMINISTRADA: 'warning',
 }
 
 const TEXTO_TOMA: Record<EstadoToma, string> = {
   ADMINISTRADA: 'Administrada',
   OMITIDA: 'Omitida',
+  NO_ADMINISTRADA: 'Sin registrar',
 }
 
 /** Etiqueta del estado calculado de un slot de la agenda. */
