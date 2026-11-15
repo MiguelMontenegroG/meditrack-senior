@@ -4,6 +4,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -49,6 +50,11 @@ public abstract class BasePruebaPostgres {
                     .withPassword("meditrack");
 
     static {
+        // Fuerza la deteccion del daemon Docker al inicializar la clase. Si no
+        // esta disponible (por ejemplo un runner de CI mal configurado), lanza
+        // una IllegalStateException explicita y con stack trace completo en
+        // lugar de un NoClassDefFoundError en cascada en todas las subclases.
+        DockerClientFactory.instance().client();
         POSTGRES.start();
     }
 

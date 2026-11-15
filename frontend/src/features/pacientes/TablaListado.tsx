@@ -14,7 +14,7 @@ interface PropsTablaListado {
 /** Tabla accesible del listado de residentes (escritorio). */
 export function TablaListado({ residentes, alAbrir }: PropsTablaListado) {
   return (
-    <div className="table-wrap">
+    <div className="table-wrap tabla-listado-residentes">
       <table className="tabla-residentes">
         <caption className="sr-only">Listado de residentes</caption>
         <thead>
