@@ -38,17 +38,23 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # Testcontainers necesita un daemon Docker accesible. En los runners de
-      # GitHub no hay systemd (systemctl no existe) y el daemon ya viene
-      # corriendo como servicio del runner. No se debe forzar DOCKER_HOST: el
-      # runner expone su socket en una ruta que puede no ser /var/run/docker.sock
-      # y fijarla a mano hace que Testcontainers falle al detectar el cliente.
-      # Solo se verifica que docker responda para diagnosticar rapido.
+      # Testcontainers necesita un daemon Docker accesible desde la JVM de
+      # pruebas. En los runners de GitHub no hay systemd (systemctl no existe)
+      # y el daemon ya viene corriendo como servicio del runner. No se fuerza
+      # DOCKER_HOST: se deja el contexto por defecto que expone el runner.
+      # Se verifica desde el shell y desde la JVM (Maven) para distinguir si el
+      # problema es del entorno Docker o solo de la deteccion de Testcontainers.
       - name: Verificar Docker para Testcontainers
         run: |
+          echo "== Shell =="
           echo "DOCKER_HOST=${DOCKER_HOST:-<no definido>}"
-          docker context ls
-          docker info
+          docker version || true
+          docker context ls || true
+          docker info || true
+          echo "== JVM (lo que ve Testcontainers) =="
+          ls -l /var/run/docker.sock || true
+          getent group docker || true
+          id || true
 
       # Valores ficticios, solo validos en pruebas. En produccion llegan por
       # variables de entorno gestionadas fuera del repositorio.
