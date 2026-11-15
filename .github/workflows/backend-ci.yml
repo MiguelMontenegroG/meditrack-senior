@@ -38,14 +38,16 @@ jobs:
           java-version: '21'
           cache: maven
 
-      # Testcontainers necesita un daemon Docker accesible. En ubuntu-latest
-      # el servicio puede no estar activo o el socket puede no ser el default.
-      # Se arranca el servicio, se habilita el acceso al socket y se verifica
-      # con docker info para fallar rapido con un mensaje claro.
-      - name: Preparar Docker para Testcontainers
+      # Testcontainers necesita un daemon Docker accesible. En los runners de
+      # GitHub no hay systemd (systemctl no existe) y el daemon ya viene
+      # corriendo como servicio del runner. No se debe forzar DOCKER_HOST: el
+      # runner expone su socket en una ruta que puede no ser /var/run/docker.sock
+      # y fijarla a mano hace que Testcontainers falle al detectar el cliente.
+      # Solo se verifica que docker responda para diagnosticar rapido.
+      - name: Verificar Docker para Testcontainers
         run: |
-          sudo systemctl start docker || true
-          sudo chmod 666 /var/run/docker.sock || true
+          echo "DOCKER_HOST=${DOCKER_HOST:-<no definido>}"
+          docker context ls
           docker info
 
       # Valores ficticios, solo validos en pruebas. En produccion llegan por
@@ -57,8 +59,6 @@ jobs:
           JWT_SECRET: clave-ficticia-de-ci-con-mas-de-32-bytes-para-hs256
           JWT_EXPIRATION_MINUTES: '60'
           CORS_ALLOWED_ORIGINS: http://localhost:5173
-          DOCKER_HOST: unix:///var/run/docker.sock
-          TESTCONTAINERS_RYUK_DISABLED: 'false'
 
       - name: Subir informe de cobertura (JaCoCo)
         if: always()
