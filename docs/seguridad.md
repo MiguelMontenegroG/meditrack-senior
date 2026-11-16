@@ -353,3 +353,44 @@ fuera de alcance se audita como `READ` **DENEGADO**. Leer el historial de un
 residente visible se audita como `READ` **EXITOSO** aunque no tenga registros; en
 cambio, pedir el "ultimo registro" de un residente visible que no tiene ninguno
 responde **404** sin auditar `READ` (no hubo lectura de datos).
+
+## 17. Alcance y reglas de los reportes clinicos en PDF (Proceso 3)
+
+El modulo de reportes reutiliza el alcance del modulo paciente a traves del mismo
+`VerificadorAlcanceResidente` y `PacienteAlcancePort` (no duplica la regla de
+visibilidad ni accede a las tablas del modulo paciente de forma directa). La
+generacion de un reporte es una **lectura agregada**: no crea ni modifica datos
+clinicos, por eso los tres roles pueden generarlo, siempre que el residente este
+dentro de su alcance.
+
+- `ADMINISTRADOR`: reportes de cualquier residente existente.
+- `CUIDADOR_ENFERMERO`: reportes de residentes con **asignacion vigente**.
+- `FAMILIAR_AUTORIZADO`: reportes de residentes con **vinculacion autorizada**.
+
+Endpoints (todos requieren JWT valido):
+
+- `GET /api/pacientes/{pacienteId}/reportes[?pagina][?tamano]`: historial
+  paginado de metadatos de reportes (los tres roles, lectura segun alcance).
+- `GET /api/pacientes/{pacienteId}/reportes/{tipo}.pdf[?desde][?hasta]`: genera y
+  descarga el PDF (los tres roles, lectura segun alcance).
+
+Reglas aplicadas:
+
+- El residente inexistente o fuera de alcance responde **404** (nunca 403) y se
+  audita como `READ` **DENEGADO** (via `VerificadorAlcanceResidente`). No se exige
+  residente activo: se puede emitir el cierre de historia de un residente dado de
+  baja.
+- El autor (`generadoPor`) sale siempre del usuario autenticado, nunca del cuerpo.
+- El rango es obligatorio y `desde <= hasta` (**400** si no); el rango no puede
+  superar los `366` dias (**409** si lo supera), para no exponer mas datos de los
+  necesarios (Ley 1581).
+- El PDF **no se almacena** en el servidor: se genera en la peticion con OpenPDF y
+  se entrega como adjunto (`application/pdf`). La tabla `reporte_generado` solo
+  guarda metadatos y una ruta referencial; es **append-only** (sin edicion ni
+  borrado).
+- El modulo es un consumidor de **solo lectura** de los demas modulos
+  (`DatosReportePort`): no modifica datos clinicos.
+
+Eventos auditados del modulo: `CREATE` de un reporte (generacion exitosa) y `READ`
+del historial; el intento sobre un residente fuera de alcance se audita como
+`READ` **DENEGADO**.

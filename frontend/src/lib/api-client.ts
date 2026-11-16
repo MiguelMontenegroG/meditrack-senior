@@ -143,6 +143,89 @@ async function peticion<T>(ruta: string, opciones: OpcionesPeticion = {}): Promi
   }
 }
 
+/**
+ * Ejecuta una peticion al backend y devuelve la Response sin parsear, para los
+ * casos binarios (descarga de PDF). Reutiliza la misma gestion de URL, token,
+ * 401 y ErrorApi que {@link peticion}.
+ */
+async function peticionCruda(
+  ruta: string,
+  opciones: OpcionesPeticion = {},
+): Promise<Response> {
+  const { method = 'GET', body, conAuth = true, notificarNoAutenticado = true } = opciones
+  const url = `${resolverBaseUrl()}${ruta.startsWith('/') ? ruta : `/${ruta}`}`
+
+  const encabezados: Record<string, string> = { Accept: 'application/json' }
+  if (body !== undefined) {
+    encabezados['Content-Type'] = 'application/json'
+  }
+  const token = conAuth ? obtenerToken() : null
+  if (token) {
+    encabezados.Authorization = `Bearer ${token}`
+  }
+
+  let respuesta: Response
+  try {
+    respuesta = await fetch(url, {
+      method,
+      headers: encabezados,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    })
+  } catch {
+    throw new ErrorApi({ status: 0, codigo: 'ERROR_RED' })
+  }
+
+  if (!respuesta.ok) {
+    const error = await leerError(respuesta)
+    if (respuesta.status === 401 && error.codigo === 'NO_AUTENTICADO' && notificarNoAutenticado) {
+      alNoAutenticado()
+    }
+    throw error
+  }
+
+  return respuesta
+}
+
+/** Descarga binaria (p. ej. un PDF) con su nombre de archivo sugerido. */
+export interface RespuestaBinaria {
+  blob: Blob
+  /** Nombre de archivo del encabezado Content-Disposition, si el backend lo envia. */
+  nombreArchivo: string | null
+}
+
+/** Extrae el nombre de archivo del encabezado Content-Disposition, si existe. */
+function nombreDesdeDisposicion(disposicion: string | null): string | null {
+  if (!disposicion) return null
+  // Soporta filename="..." y la forma extendida filename*=UTF-8''...
+  const extendido = /filename\*\s*=\s*([^']*)''([^;]+)/i.exec(disposicion)
+  if (extendido) {
+    const crudo = extendido[2].trim().replace(/['"]/g, '')
+    try {
+      return decodeURIComponent(crudo)
+    } catch {
+      return crudo
+    }
+  }
+  const simple = /filename\s*=\s*"?([^";]+)"?/i.exec(disposicion)
+  return simple ? simple[1].trim() : null
+}
+
+/**
+ * Descarga una respuesta binaria del backend (por ejemplo un PDF) sin intentar
+ * parsearla como JSON. Devuelve el Blob y el nombre de archivo sugerido por el
+ * Content-Disposition (o null si no viene). Los errores (400/404/409/401/red)
+ * se lanzan como ErrorApi igual que en el resto del cliente.
+ */
+async function descargarBinario(
+  ruta: string,
+  opciones: OpcionesPeticion = {},
+): Promise<RespuestaBinaria> {
+  const respuesta = await peticionCruda(ruta, { ...opciones, method: 'GET' })
+  const nombreArchivo = nombreDesdeDisposicion(respuesta.headers.get('content-disposition'))
+  const blob = await respuesta.blob()
+  return { blob, nombreArchivo }
+}
+
 /** Cliente HTTP con los verbos que usa la aplicacion. */
 export const apiClient = {
   get: <T>(ruta: string, opciones?: OpcionesPeticion) =>
@@ -155,4 +238,6 @@ export const apiClient = {
     peticion<T>(ruta, { ...opciones, method: 'PATCH', body }),
   delete: <T>(ruta: string, opciones?: OpcionesPeticion) =>
     peticion<T>(ruta, { ...opciones, method: 'DELETE' }),
+  /** Descarga binaria (blob) sin romper el manejo JSON del resto del cliente. */
+  descargarBinario,
 }

@@ -16,8 +16,18 @@ node_modules/
 dist/
 frontend/dist/
 
+# Cobertura de pruebas (generada localmente y en CI)
+coverage/
+frontend/coverage/
+
 # IDEs y sistema
 .idea/
 .vscode/
 *.iml
 .DS_Store
+
+# Playwright (e2e): artefactos generados por las ejecuciones
+e2e/test-results/
+e2e/playwright-report/
+e2e/blob-report/
+e2e/.auth/

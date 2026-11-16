@@ -27,7 +27,7 @@ export function VistaCuidador() {
         <div>
           <p className="eyebrow">Jornada de hoy</p>
           <h2>Tu agenda de medicacion</h2>
-          <p className="muted">
+          <p className="muted" data-testid="cuidador-saludo">
             {cargando
               ? 'Cargando tus tareas...'
               : pendientes === 0
@@ -62,7 +62,7 @@ function BitacoraDelCuidador() {
   const { residentes, cargando, error, recargar } = useResidentesAsignados()
 
   return (
-    <section className="panel vitals-quick">
+    <section className="panel vitals-quick" data-testid="cuidador-bitacora">
       <div className="panel-header">
         <div>
           <h3>Bitacora de signos vitales</h3>
@@ -262,7 +262,7 @@ function ResidentesAsignados() {
         />
       )}
       {!cargando && !error && residentes.length > 0 && (
-        <ul className="task-list">
+        <ul className="task-list" data-testid="cuidador-residentes">
           {residentes.map((residente) => (
             <li key={residente.pacienteId} className="task-row">
               <div className="task-copy">

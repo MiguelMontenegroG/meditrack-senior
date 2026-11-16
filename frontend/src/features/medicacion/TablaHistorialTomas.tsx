@@ -15,7 +15,7 @@ interface PropsTablaHistorialTomas {
 /** Tabla accesible del historial de tomas (escritorio). */
 export function TablaHistorialTomas({ tomas, nombrePorEsquema }: PropsTablaHistorialTomas) {
   return (
-    <div className="table-wrap">
+    <div className="table-wrap tabla-historial-tomas">
       <table className="tabla-residentes">
         <caption className="sr-only">Historial de tomas</caption>
         <thead>

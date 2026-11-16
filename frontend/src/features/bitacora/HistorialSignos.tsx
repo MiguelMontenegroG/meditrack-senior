@@ -86,7 +86,7 @@ interface PropsTablaSignos {
 function TablaSignos({ registros }: PropsTablaSignos) {
   return (
     <div className="table-wrap">
-      <table className="tabla-residentes tabla-signos">
+      <table className="tabla-residentes tabla-signos" data-testid="tabla-signos">
         <caption className="sr-only">Historial de signos vitales</caption>
         <thead>
           <tr>

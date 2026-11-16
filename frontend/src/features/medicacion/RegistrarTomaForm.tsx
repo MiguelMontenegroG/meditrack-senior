@@ -84,10 +84,29 @@ export function RegistrarTomaForm({
         >
           <X size={15} /> Omitida
         </button>
+        <button
+          type="button"
+          className={estado === 'NO_ADMINISTRADA' ? 'selected' : ''}
+          aria-pressed={estado === 'NO_ADMINISTRADA'}
+          onClick={() => setEstado('NO_ADMINISTRADA')}
+        >
+          <X size={15} /> Sin registrar
+        </button>
       </fieldset>
       {estado === 'OMITIDA' && (
         <label>
           Motivo de la omision
+          <input
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+            maxLength={200}
+            aria-invalid={Boolean(error)}
+          />
+        </label>
+      )}
+      {estado === 'NO_ADMINISTRADA' && (
+        <label>
+          Motivo de la toma sin registrar
           <input
             value={observaciones}
             onChange={(e) => setObservaciones(e.target.value)}

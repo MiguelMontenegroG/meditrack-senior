@@ -17,7 +17,7 @@ interface PropsTablaUsuarios {
 /** Tabla accesible del listado de usuarios (escritorio). */
 export function TablaUsuarios({ usuarios, usuarioActualId, alEditar }: PropsTablaUsuarios) {
   return (
-    <div className="table-wrap">
+    <div className="table-wrap tabla-listado-usuarios">
       <table className="tabla-residentes">
         <caption className="sr-only">Listado de usuarios</caption>
         <thead>

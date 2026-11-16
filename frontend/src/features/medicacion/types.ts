@@ -6,7 +6,7 @@
 export type ViaAdministracion = 'ORAL' | 'SUBCUTANEA' | 'INTRAMUSCULAR' | 'TOPICA' | 'OTRA'
 
 /** Estado persistido de una toma registrada (no se persiste lo pendiente). */
-export type EstadoToma = 'ADMINISTRADA' | 'OMITIDA'
+export type EstadoToma = 'ADMINISTRADA' | 'OMITIDA' | 'NO_ADMINISTRADA'
 
 /** Estado calculado de un slot de la agenda del dia. */
 export type EstadoSlotToma = 'PENDIENTE' | 'ATRASADA' | 'ADMINISTRADA' | 'OMITIDA'

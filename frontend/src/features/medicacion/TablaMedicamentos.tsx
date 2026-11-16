@@ -19,7 +19,7 @@ export function TablaMedicamentos({
   alEditar,
 }: PropsTablaMedicamentos) {
   return (
-    <div className="table-wrap">
+    <div className="table-wrap tabla-listado-medicamentos">
       <table className="tabla-residentes">
         <caption className="sr-only">Catalogo de medicamentos</caption>
         <thead>

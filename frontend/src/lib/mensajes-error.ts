@@ -60,6 +60,11 @@ export type ContextoError =
   | 'bitacora-fecha-futura'
   | 'bitacora-sin-signos'
   | 'bitacora-valores-incoherentes'
+  | 'alerta-atendida'
+  | 'alerta-no-encontrada'
+  | 'reporte-no-encontrado'
+  | 'reporte-rango-invalido'
+  | 'reporte-rango-excedido'
 
 const MENSAJES_CONTEXTO: Record<ContextoError, Partial<Record<CodigoError, string>>> = {
   // El backend responde 409 CONFLICTO cuando el documento ya existe.
@@ -139,6 +144,26 @@ const MENSAJES_CONTEXTO: Record<ContextoError, Partial<Record<CodigoError, strin
   // 400 VALIDACION por valores fuera de rango o presion incoherente.
   'bitacora-valores-incoherentes': {
     VALIDACION: 'Revisa los valores: deben estar dentro del rango y la diastolica ser menor que la sistolica.',
+  },
+  // 409 CONFLICTO si la alerta ya fue atendida por otro usuario.
+  'alerta-atendida': {
+    CONFLICTO: 'Esta alerta ya fue atendida; actualiza la lista para ver su estado actual.',
+  },
+  // 404 si la alerta no existe o el residente esta fuera de alcance.
+  'alerta-no-encontrada': {
+    ERROR_INESPERADO: 'La alerta no esta disponible o ya no existe.',
+  },
+  // 404 si el residente del reporte no existe o esta fuera de alcance.
+  'reporte-no-encontrado': {
+    ERROR_INESPERADO: 'El residente no esta disponible o no existe.',
+  },
+  // 400 VALIDACION si faltan fechas o el rango esta invertido.
+  'reporte-rango-invalido': {
+    VALIDACION: 'Revisa el rango de fechas: indica desde y hasta, con desde no posterior a hasta.',
+  },
+  // 409 CONFLICTO si el rango supera el maximo permitido (366 dias).
+  'reporte-rango-excedido': {
+    CONFLICTO: 'El rango del reporte no puede superar los 366 dias.',
   },
 }
 

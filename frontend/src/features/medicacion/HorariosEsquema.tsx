@@ -2,11 +2,12 @@
 // quitar y editar horas, sugiere las equiespaciadas segun la frecuencia y
 // avisa cuando la frecuencia exige una cantidad exacta de horarios.
 
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Wand2 } from 'lucide-react'
 import { BotonAccion } from '@/components/ui/BotonAccion'
 import {
   esHoraValida,
   frecuenciaPermiteHorariosExactos,
+  sugerirHorarios,
 } from '@/features/medicacion/fechas'
 
 interface PropsHorariosEsquema {
@@ -35,6 +36,12 @@ export function HorariosEsquema({
 
   const agregar = () => alCambiar([...horarios, ''])
   const quitar = (indice: number) => alCambiar(horarios.filter((_, i) => i !== indice))
+  // Rellena los horarios equiespaciados de la frecuencia (24/frecuencia). Es una
+  // ayuda de captura: la cantidad y el formato se siguen validando al guardar.
+  const sugerir = () => {
+    const sugeridos = sugerirHorarios(frecuenciaHoras)
+    if (sugeridos.length > 0) alCambiar(sugeridos)
+  }
 
   return (
     <fieldset className="horarios-esquema">
@@ -71,9 +78,16 @@ export function HorariosEsquema({
           )
         })}
       </ul>
-      <BotonAccion variant="outline" onClick={agregar}>
-        <Plus size={16} /> Agregar horario
-      </BotonAccion>
+      <div className="horarios-acciones">
+        {cantidadEsperada !== null && (
+          <BotonAccion variant="outline" onClick={sugerir}>
+            <Wand2 size={16} /> Sugerir horarios
+          </BotonAccion>
+        )}
+        <BotonAccion variant="outline" onClick={agregar}>
+          <Plus size={16} /> Agregar horario
+        </BotonAccion>
+      </div>
       {error && (
         <span className="campo-error" role="alert">
           {error}

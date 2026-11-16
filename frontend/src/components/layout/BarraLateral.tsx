@@ -5,9 +5,11 @@ import { MarcaMediTrack } from '@/components/layout/MarcaMediTrack'
 import { useAutenticacion } from '@/features/auth/useAutenticacion'
 import type { RolUsuario } from '@/features/auth/types'
 
-// Barra lateral de escritorio. Muestra "Residentes", "Calendario" y "Bitacora"
-// a los tres roles; las secciones de administracion (Panel, Alertas, Reportes,
-// Usuarios) solo al ADMINISTRADOR.
+// Barra lateral de escritorio. Las secciones de lectura (Residentes, Calendario,
+// Bitacora, Alertas y Reportes) las ven los tres roles; el backend filtra el
+// alcance. El Panel y Usuarios son solo del ADMINISTRADOR. Alertas y Reportes
+// son de lectura/generacion para los tres roles segun AlertaController y
+// ReporteController del backend.
 
 interface ElementoNavegacion {
   etiqueta: string
@@ -32,12 +34,16 @@ const NAVEGACION_CUIDADOR: ElementoNavegacion[] = [
   { etiqueta: 'Medicamentos', ruta: '/medicamentos', icono: Pill },
   { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
   { etiqueta: 'Bitacora', ruta: '/bitacora', icono: ClipboardList },
+  { etiqueta: 'Alertas', ruta: '/alertas', icono: Bell },
+  { etiqueta: 'Reportes', ruta: '/reportes', icono: FileBarChart },
 ]
 
 const NAVEGACION_FAMILIAR: ElementoNavegacion[] = [
   { etiqueta: 'Residentes', ruta: '/residentes', icono: Users },
   { etiqueta: 'Calendario', ruta: '/calendario', icono: CalendarDays },
   { etiqueta: 'Bitacora', ruta: '/bitacora', icono: ClipboardList },
+  { etiqueta: 'Alertas', ruta: '/alertas', icono: Bell },
+  { etiqueta: 'Reportes', ruta: '/reportes', icono: FileBarChart },
 ]
 
 const NAVEGACION_POR_ROL: Record<RolUsuario, ElementoNavegacion[]> = {

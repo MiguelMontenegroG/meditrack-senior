@@ -3,10 +3,14 @@ import { Link } from 'react-router-dom'
 import { MarcaMediTrack } from '@/components/layout/MarcaMediTrack'
 import { useAutenticacion } from '@/features/auth/useAutenticacion'
 import type { RolUsuario } from '@/features/auth/types'
+import { useContadorAlertas } from '@/features/alertas/useContadorAlertas'
+import { puedeVerAlertas } from '@/features/alertas/permisos'
 
 // Encabezado de la aplicacion: marca en movil, titulo de pagina y acciones
 // (busqueda, alertas y menu de usuario). Los botones de icono cumplen el
 // minimo tactil de 44px en movil (ver clase .icon-button en globals.css).
+// La campana muestra el contador real de alertas ACTIVAS (una sola llamada) y
+// enlaza a /alertas; si la consulta falla, la campana no rompe el encabezado.
 
 /** Etiqueta legible del rol del usuario autenticado. */
 const ETIQUETA_ROL: Record<RolUsuario, string> = {
@@ -32,6 +36,9 @@ interface PropsEncabezadoApp {
 /** Cabecera superior del area principal. */
 export function EncabezadoApp({ titulo }: PropsEncabezadoApp) {
   const { usuario, cerrarSesion } = useAutenticacion()
+  const puedeVer = puedeVerAlertas(usuario?.rol)
+  const { total: alertasActivas, error: errorContador } = useContadorAlertas(puedeVer)
+  const mostrarContador = !errorContador && alertasActivas > 0
 
   return (
     <header className="topbar">
@@ -51,10 +58,15 @@ export function EncabezadoApp({ titulo }: PropsEncabezadoApp) {
           <input aria-label="Buscar residente" placeholder="Buscar residente..." />
           <kbd>Ctrl K</kbd>
         </label>
-        <button className="icon-button alert-button" aria-label="Ver alertas">
+        <Link
+          to="/alertas"
+          className="icon-button alert-button"
+          aria-label={mostrarContador ? `Ver alertas (${alertasActivas} activas)` : 'Ver alertas'}
+          title="Ver alertas"
+        >
           <Bell size={20} />
-          <i>4</i>
-        </button>
+          {mostrarContador && <i>{alertasActivas}</i>}
+        </Link>
         <div className="user-menu">
           <span className="avatar avatar-gold">{usuario ? iniciales(usuario.nombreCompleto) : '--'}</span>
           <span className="user-menu-copy">
